@@ -2,18 +2,43 @@
 Notes on docker
 
 ## Manipulating Containers with the Docker Client
-`docker run hello-world` verify installation  
-`docker version` info on installation  
-`docker run <image name>` create and run a container from image  
-`docker run <image name> command` default command override  
-`docker run busybox echo "hi there"` prints "hi there" to terminal  
-`docker ps` list of running containers  
-`docker ps --all` container history  
+Verify installation:  
+`docker run hello-world`
+
+Info on installation:  
+`docker version`
+
+Create and run a container from image:  
+`docker run <image name>`   
+
+Default command override:  
+`docker run <image name> command`
+
+For example this prints "hi there" to terminal:  
+`docker run busybox echo "hi there"`  
+
+List of running containers:  
+`docker ps`  
+
+Container history:  
+`docker ps --all`
 
 The run command combines the create and start commands:  
 `docker run <image name> = docker create <image name> + docker start <container id>`  
-`docker create <image name>` creates image and provides container id  
-`docker start <container id>` starts the specified container, echos the id  
-`docker start -a <container id>` the `-a` flag attaches to the running container  
+
+Creates image and provides a container id:  
+`docker create <image name>`  
+
+Starts the specified container, echos the id:  
+`docker start <container id>`
+
+The `-a` flag attaches to the running container:  
+`docker start -a <container id>`  
 A container can be restarted using the start command combined with the target container id  
+
+Remove stopped containers:  
+`docker system prune`  
+
+Get logs from a container:  
+`docker logs <container id>`
 
