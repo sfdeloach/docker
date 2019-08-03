@@ -42,3 +42,12 @@ Remove stopped containers:
 Get logs from a container:  
 `docker logs <container id>`
 
+Stop a container (SIGTERM):  
+`docker stop <container id>`  
+If unsuccessful after 10 seconds, this command will revert to the kill command
+
+Kill a containeri (SIGKILL):  
+`docker kill <container id>`  
+Does not allow the container to shutdown, `stop` command is preferred
+
+
