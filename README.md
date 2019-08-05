@@ -105,14 +105,15 @@ Build an image with repository info, name, and tag (version):
 
 Another (nonsensical) example using Fedora and NodeJs:  
 
-    # Use an existing image of Fedora
-    FROM fedora
+```Dockerfile
+# Use an existing image of Fedora
+FROM fedora
 
-    # Download nodejs and gcc with its package manager
-    RUN dnf install -y nodejs
-    RUN dnf install -y gcc
+# Download nodejs and gcc with its package manager
+RUN dnf install -y nodejs
+RUN dnf install -y gcc
 
-    # Run ping when the container starts
-    CMD ["ping archlinux.org"]
-
+# Run ping when the container starts
+CMD ["ping archlinux.org"]
+```
 
