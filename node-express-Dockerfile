@@ -1,5 +1,5 @@
-# start with a base simple os
-FROM alpine
+# start with a base OS with a tag specified
+FROM alpine:3.9.4
 
 # establish the working directory in the container
 WORKDIR /home/application
@@ -20,3 +20,7 @@ COPY ./app.js ./
 # the default command, run from the working directory inside the container
 CMD ["npm", "start"]
 
+# To map a local port to a container port:
+# $ docker run -p 80:3000 <image id>
+# or
+# $ docker create -p 80:3000 <image id>
