@@ -110,10 +110,25 @@ Another (nonsensical) example using Fedora and NodeJs:
 FROM fedora
 
 # Download nodejs and gcc with its package manager
+RUN dnf update -y
 RUN dnf install -y nodejs
 RUN dnf install -y gcc
 
-# Run ping when the container starts
-CMD ["ping archlinux.org"]
+# Run ping when the container starts, notice the string array format
+CMD ["ping","archlinux.org"]
 ```
+## Making Real Projects with Docker
+
+See the file `node-express-Dockerfile` for an example of how to build a nodeJS express server image
+using a Dockerfile. Take notice of the following "how to's":
+
+- specify a tag with a base image
+- set a working directory inside your container
+- copy build files from your local machine into your container
+- map network ports to you container
+- put thought into the order of commands in the Dockerfile to minimize rebuild times
+
+## Docker Compose with Multiple Local Containers
+
+## Creating a Production-Grade Workflow
 
