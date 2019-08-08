@@ -130,5 +130,36 @@ using a Dockerfile. Take notice of the following "how to's":
 
 ## Docker Compose with Multiple Local Containers
 
+It is possible to place multiple services inside a container, however, this is not good practice.
+Each service should be placed in its own container so that there is greater flexibility when
+scaling.
+
+Docker Compose sets up a single network for your application(s) by default, adding each container 
+for a service to the default network. Containers on a single network can reach and discover every
+other container on the network.
+
+A `docker-compose.yml` is used by Docker Compose to create containers.
+
+See `docker-compose-example` for a small project. The containers are build by running the command
+```bash
+docker-compose up --build --project-name visits
+```
+
+To see a list of running containers created by Docker Compose, be sure you are in the project
+folder and run:
+```bash
+docker-compose ps
+```
+
+To launch containers in the background:
+```bash
+docker-compose up -d
+```
+
+To stop containers created by Docker Compose:
+```bash
+docker-compose down
+```
+
 ## Creating a Production-Grade Workflow
 
