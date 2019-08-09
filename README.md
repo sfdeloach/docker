@@ -203,3 +203,23 @@ docker-compose down
 
 ## Creating a Production-Grade Workflow
 
+The workflow is a continuous cycle:
+```
+┌<--------------------------------------┐
+│                                       │
+└-->Development-->Testing-->Deployment->┘
+```
+
+In this example, found in `06-production-workflow`, the specific workflow will look like this:
+```
+       ┌----------------------------------┐
+       │           Github Repo            │
+       └----------------------------------┘
+       feature --- pull request ---> master ---> Travis CI ---> Deploy
+        branch                       branch      (testing)      to AWS
+          ^
+          │
+          │
+   Develop Locally
+```
+
