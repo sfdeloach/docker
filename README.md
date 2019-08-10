@@ -205,9 +205,9 @@ docker-compose down
 
 The workflow is a cycle:
 ```
-     ┌<--------------------------------------┐
-     │                                       │
-     └-->Development-->Testing-->Deployment->┘
+       ┌<--------------------------------------┐
+       │                                       │
+       └-->Development-->Testing-->Deployment->┘
 ```
 
 In this example, found in `06-production-workflow`, the specific workflow will look like this:
@@ -236,11 +236,13 @@ contain a significant number of directories and files. In a later step, this dir
 removed in order to prevent unnecessary duplication:
 ```
   $ create-react-app frontend
+  $ cd frontend
+  $ npm start
   $ npm run test
   $ npm run build
 ```
 
-Inside the `frontend` directory, create a development Dockerfile:
+Remaining in the `frontend` directory, create a development Dockerfile:
 ```
   $ touch Dockerfile.dev
 ```
