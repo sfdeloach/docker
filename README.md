@@ -135,19 +135,23 @@ FROM alpine
 # Download and install a dependency
 RUN apk add --update redis
 
-# Tell the image what to do when it starts as a container
+# Tell the image what command to run when it starts
 CMD ["redis-server"]
 ```
 
 Building the image (command executed from the same directory as `Dockerfile`):  
-`docker build .`  
+```bash
+  $ docker build .
+```  
 > Docker will cache dependencies for faster rebuilds
 
 Build an image with repository info, name, and tag (version):  
-`docker build -t sfdeloach/redis:latest .`  
+```bash
+  $ docker build -t sfdeloach/redis:latest .
+```  
 > By convention, the tag is prefixed with your Docker ID
 
-Another (nonsensical) example using Fedora and NodeJs:  
+Another (nonsensical) example:  
 
 ```Dockerfile
 # Use an existing image of Fedora
@@ -161,12 +165,13 @@ RUN dnf install -y gcc
 # Run ping when the container starts, notice the string array format
 CMD ["ping","archlinux.org"]
 ```
+
 ## Making Real Projects with Docker
 
-See the file `node-express-Dockerfile` for an example of how to build a nodeJS express server image
+See `Dockerfile` in `04-simple server` for an example of how to build a nodeJS express server image
 using a Dockerfile. Take notice of the following:
 
-- specify a tag with a base image
+- specify a tag with a base for more images
 - set a working directory inside your container
 - copy build files from your local machine into your container
 - map network ports to you container
