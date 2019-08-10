@@ -223,10 +223,51 @@ In this example, found in `06-production-workflow`, the specific workflow will l
    Develop Locally <----------------------------------------------┘
 ```
 
-Install dependencies for node, npm, and react:
+Install dependencies for node, npm, and react, if not already installed on your local machine:
 ```
+  $ # Fedora package manager
   $ dnf install node npm
   $ npm install -g create-react-app
 ```
 
+Create a new react app, run the out of the box test, and build the application to make sure the
+application works. Note that these steps will create the `node_modules` directory, which will
+contain a significant number of directories and files. In a later step, this directory will be
+removed in order to prevent unnecessary duplication:
+```
+  $ create-react-app frontend
+  $ npm run test
+  $ npm run build
+```
+
+Inside the `frontend` directory, create a development Dockerfile:
+```
+  $ touch Dockerfile.dev
+```
+
+This file will use the `npm run start` command during development. Later we will create the 
+conventional `Dockerfile` that will use the `npm run build` command for production.
+
+The contents of the `Dockerfile.dev` will provide the setup of our development container:
+```
+FROM node:alpine
+
+WORKDIR '/app'
+
+COPY package.json .
+RUN npm install
+
+# Be sure to delete the local node_modules directory if this "shortcut" copy command is used
+COPY . .
+
+# Instead of deleting the local node_modules directory, files could be explicity copied instead
+
+CMD ["npm","run","start"]
+```
+
+Running `docker build .` will look for the default `Dockerfile`, which does not exist at this time.
+The build file must be explicitly defined using the `-f` flag:
+```
+  $ docker build -f Dockerfile.dev .
+```
 
