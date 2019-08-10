@@ -12,112 +12,112 @@ Notes on docker
 
 Verify installation:  
 ```bash
-docker run hello-world
+  $ docker run hello-world
 ```
 
 Info on installation:  
 ```bash
-docker version
+  $ docker version
 ```
 
 Create and run a new container from image:  
 ```bash
-docker run <image name>
+  $ docker run <image name>
 ```
 > If the image is not already loaded then it will pull the image from the repo before it starts
 
 Default command override:  
 ```bash
-docker run <image name> command
+  $ docker run <image name> command
 ```
 
 For example this prints "hi there" to terminal:  
 ```bash
-docker run busybox echo "hi there" 
+  $ docker run busybox echo "hi there" 
 ```
 
 List of running containers:  
 ```bash
-docker ps
+  $ docker ps
 ```
 > Alias for `docker container ls`. By default, only running containers in the local repo are listed.
 
 List of all containers, running and stopped:  
 ```bash
-docker ps -a
+  $ docker ps -a
 ```
 > The `-a` flag is short for `--all`. See `man docker container-ls` for more info.
 
 The run command combines the create and start commands:  
 ```bash
-docker run <image name> = docker create <image name> + docker start <container id>
+  $ docker run <image name> = docker create <image name> + docker start <container id>
 ```
 
 Creates a new container from an image:  
 ```bash
-docker create <image name>
+  $ docker create <image name>
 ```
 
 Starts the specified container, echos the id:  
 ```bash
-docker start <container id>
+  $ docker start <container id>
 ```
 
 The `-a` flag attaches to the running container:  
 ```bash
-docker start -a <container id>
+  $ docker start -a <container id>
 ```
 > A container can be restarted using the start command combined with the target container id  
 
 Remove stopped containers:  
 ```bash
-docker system prune
+  $ docker system prune
 ```
 
 Get logs from a container:  
 ```bash
-docker logs <container id>
+  $ docker logs <container id>
 ```
 
 Stop a container (SIGTERM):  
 ```bash
-docker stop <container id>
+  $ docker stop <container id>
 ```
 > If unsuccessful after 10 seconds, this command will revert to the kill command
 
 Kill a container (SIGKILL):  
 ```bash
-docker kill <container id>
+  $ docker kill <container id>
 ```
 > Does not allow the container to shutdown, `stop` command is preferred
 
 Multi-command containers:  
 ```bash
-docker exec -it <container id> <command>
+  $ docker exec -it <container id> <command>
 ```
 > Run a command in a running container. The `-i` keeps STDIN open and will make the session
 interactive. The `-t` flag will allocate a pseudo-TTY and make the session prettier.  
 
 Getting a command prompt in a container:  
 ```bash
-docker exec -it <container id> bash
+  $ docker exec -it <container id> bash
 ```
 > Provides interactive bash shell on a running container.
 
 Run a new container and start in a shell:  
 ```bash
-docker run -it <image name> sh
+  $ docker run -it <image name> sh
 ```
 
 Run a new Ubuntu container and start in a bash shell:  
 ```bash
-docker run -it ubuntu bash
+  $ docker run -it ubuntu bash
 ```
 > Docker containers run in completed isolated filesystems.
 
 View docker images on your local machine:  
 ```bash
-docker image ls
+  $ docker image ls
 ```
 
 ## Building Custom Images Through Docker Server
@@ -179,8 +179,26 @@ for a service to the default network. Containers on a single network can reach a
 other container on the network.
 
 A `docker-compose.yml` is used by Docker Compose to create containers.
+```
+  $ touch docker-compose.yml
+```
 
-See `docker-compose-example` for a small project. The containers are build by running the command
+The contents of `docker-compose.yml`:
+```
+version: '3'
+services:
+  redis-server:
+    image: 'redis'
+  node-app:
+    restart: always
+    build: .
+    ports:
+      - "80:3000"
+
+# restart policies include "no" (default), always, on-failure, and unless stopped
+```
+
+The containers are built by running the command:
 ```bash
 docker-compose up --build --project-name visits
 ```
@@ -270,6 +288,44 @@ CMD ["npm","run","start"]
 Running `docker build .` will look for the default `Dockerfile`, which does not exist at this time.
 The build file must be explicitly defined using the `-f` flag:
 ```
-  $ docker build -f Dockerfile.dev .
+  $ docker build -t sfdeloach/react-dev -f Dockerfile.dev .
 ```
 
+Options added to the run command allow bookmarks and mappings to a volume. This will allow the
+react development server the ability to detect changes made locally. Notice that both bookmarks
+and mappings use the same `-v` flag. The only difference is the colon, which is a similar syntax
+used earlier to map a container's port to the local machine's port:
+```bash
+ $ docker run -p 3000:3000 -v /app/node_modules -v $(pwd):/app <image id>
+ $ #                       ^this is a bookmark  ^this is a mapping
+```
+
+The above run command is rather lengthy. Docker Compose to the rescue!
+```
+  $ touch docker-compose.yml
+```
+
+The contents of `docker-compose.yml`:
+```
+version: '3'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - /app/node_modules
+      - .:/app
+
+# The context allows a reference to a different directory
+#   if the current directory is not the working directory.
+```
+
+To run tests, override the run command as demonstrated before:
+```
+  $ docker run -it <image id> npm run test
+```
+
+[ next lesson 75. Live Updating Tests ]
