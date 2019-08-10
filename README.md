@@ -3,7 +3,7 @@ Notes on docker
 
 ## Dive into Docker!
 **image**
-> Containers are created from images. Think of a cookie cutter.
+> Containers are created from images. Think cookie cutter.
 
 **container**
 > An instance of an image. Think cookie.
