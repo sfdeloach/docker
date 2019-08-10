@@ -50,7 +50,9 @@ List of all containers, running and stopped:
 
 The run command combines the create and start commands:  
 ```bash
-  $ docker run <image name> = docker create <image name> + docker start <container id>
+  $ docker run <image name>
+  $ # same as
+  $ docker create <image name> && docker start <container id>
 ```
 
 Creates a new container from an image:  
@@ -89,35 +91,37 @@ Kill a container (SIGKILL):
 ```bash
   $ docker kill <container id>
 ```
-> Does not allow the container to shutdown, `stop` command is preferred
+> Does not allow the container to gracefully shutdown, `stop` command is preferred
 
-Multi-command containers:  
+Execute a command in a running container:  
 ```bash
   $ docker exec -it <container id> <command>
 ```
 > Run a command in a running container. The `-i` keeps STDIN open and will make the session
 interactive. The `-t` flag will allocate a pseudo-TTY and make the session prettier.  
 
-Getting a command prompt in a container:  
+Get a command prompt in a container:  
 ```bash
   $ docker exec -it <container id> bash
 ```
 > Provides interactive bash shell on a running container.
 
-Run a new container and start in a shell:  
+Run (create & start) a new container and bring up an interactive shell:  
 ```bash
   $ docker run -it <image name> sh
 ```
 
-Run a new Ubuntu container and start in a bash shell:  
+Run a new Ubuntu container and start bash shell:
 ```bash
   $ docker run -it ubuntu bash
 ```
-> Docker containers run in completed isolated filesystems.
+> Docker containers run on isolated filesystems.
 
 View docker images on your local machine:  
 ```bash
   $ docker image ls
+  $ # or
+  $ docker images
 ```
 
 ## Building Custom Images Through Docker Server
