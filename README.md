@@ -259,11 +259,11 @@ In this example, found in `06-production-workflow`, the specific workflow will l
    Develop Locally <───────────────────────────────────────────────┘
 ```
 
-This section and the next, [Continuous Integration and Deployment with AWS]
-(#continuous-integration-and-deployment-with-aws), will cover the workflow cycle in greater detail.
+This section and the next, [Continuous Integration and Deployment with AWS](#continuous-integration-and-deployment-with-aws),
+will cover the workflow cycle in greater detail.
 
 Install dependencies for node, npm, and react, if not already installed on your local machine:
-```
+```bash
   $ # Fedora package manager
   $ dnf install node npm
   $ npm install -g create-react-app
@@ -273,7 +273,7 @@ Create a new react app, run the out of the box test, and build the application t
 application works. Note that these steps will create the `node_modules` directory, which will
 contain a significant number of directories and files. In a later step, this directory will be
 removed in order to prevent unnecessary duplication:
-```
+```bash
   $ create-react-app frontend
   $ cd frontend
   $ npm start
@@ -282,7 +282,7 @@ removed in order to prevent unnecessary duplication:
 ```
 
 Remaining in the `frontend` directory, create a development Dockerfile:
-```
+```bash
   $ touch Dockerfile.dev
 ```
 
@@ -290,7 +290,7 @@ This file will use the `npm run start` command during development. Later we will
 conventional `Dockerfile` that will use the `npm run build` command for production.
 
 The contents of the `Dockerfile.dev` will provide the setup of our development container:
-```
+```Dockerfile
 FROM node:alpine
 
 WORKDIR '/app'
@@ -308,7 +308,7 @@ CMD ["npm","run","start"]
 
 Running `docker build .` will look for the default `Dockerfile`, which does not exist at this time.
 The build file must be explicitly defined using the `-f` flag:
-```
+```bash
   $ docker build -t sfdeloach/react-dev -f Dockerfile.dev .
 ```
 
@@ -322,12 +322,12 @@ used earlier to map a container's port to the local machine's port:
 ```
 
 The above run command is rather lengthy. Docker Compose to the rescue!
-```
+```bash
   $ touch docker-compose.yml
 ```
 
 The contents of `docker-compose.yml`:
-```
+```yml
 version: '3'
 services:
   web:
@@ -345,19 +345,21 @@ services:
 ```
 
 To run tests, override the run command as demonstrated before:
-```
+```bash
   $ docker run -it <image id> npm run test
 ```
 
 Running the command as demonstrated above causes a small problem. A new container is created with
 its own filesystem, therefore, it is unable to detect any live changes to the source. There are
-two solutions. The first solution uses the `exec` command on the running running container:
+two solutions, each with advantages and disadvantages. The first solution uses the `exec` command
+on the running running container:
 ```
   $ docker exec -it <container id> npm run test
 ```
 
-The second solution is to setup an additional service in `docker-compose.yml`:
-```
+The drawback on this approach requires a second step and keeping the container ID in mind.  The
+second solution is to setup an additional service in `docker-compose.yml`:
+```Dockerfile
 ...
   (append this to the bottom of the existing file)
 ...
@@ -372,7 +374,44 @@ The second solution is to setup an additional service in `docker-compose.yml`:
     command: ["npm","run","test"]
 ```
 
-There is a drawback with this approach. The test results update as expected, however, the terminal
-is not attached and does not allow for an interactive experience. Consider which option may be best
-for your current testing objectives.
+The test results update as expected and they are conveniently started in its own container, however,
+the terminal is not attached to the standard input, which does not allow for an interactive
+experience. Consider which option may be best for your current testing objectives.
+
+To this point in the exercise, we have setup a development and testing container. Now it is time to
+move to production. This will be accomplished in a multi-step build process. In this case it will
+occur in one `Dockerfile` that specifies two phases: **BUILD** and **RUN**
+
+The *build phase* will use `node:alpine` as a base image and install all dependencies in order to
+build the react app.
+
+The *run phase* will use `nginx` as a base image, copy over the results of the *build phase* and
+start the Nginx server.
+
+The multi phase `Dockerfile`:
+```Dockerfile
+FROM node:alpine as builder 
+WORKDIR '/app'
+COPY package.json .
+RUN npm install 
+COPY . .
+RUN npm run build 
+
+FROM nginx
+COPY --from=builder /app/build /usr/share/nginx/html
+```
+
+Note the following:
+- it is not necessary to install all the dev dependencies in our production container
+- in fact, node is not needed at all in production, we are only serving static content
+- build stages can be named to increase readability: `FROM node:alpine as builder`
+- no `RUN` command is necessary for nginx, the server is enabled by default
+
+We are now ready to build our production image and run it:
+```bash
+  $ docker build .
+  $ docker run -p 8080:80 <image id>
+```
+
+## Continuous Integration and Deployment with AWS
 
