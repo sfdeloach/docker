@@ -1,5 +1,5 @@
-# docker
-Notes on docker
+# Docker and Kubernetes: The Complete Guide
+Course notes from Stephen Grider's lectures on Udemy.com
 
 ## Dive into Docker!
 **image**
@@ -337,4 +337,28 @@ To run tests, override the run command as demonstrated before:
   $ docker run -it <image id> npm run test
 ```
 
-[ next lesson 75. Live Updating Tests ]
+Running the command as demonstrated above causes a small problem. A new container is created with
+its own filesystem, therefore, it is unable to detect any live changes to the source. There are
+two solutions. The first solution uses the `exec` command on the running running container:
+```
+  $ docker exec -it <image id> npm run test
+```
+
+The second solution is to setup an additional service in `docker-compose.yml`:
+```
+...(append this to the bottom of the existing file)...
+
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - .:/app
+    command: ["npm","run","test"]
+```
+
+There is a drawback with this approach. The test results update as expected, however, the terminal
+is not attached and does not allow for an interactive experience.
+
+
