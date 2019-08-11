@@ -240,22 +240,22 @@ docker-compose down
 
 The workflow is a cycle:
 ```
-       ┌<--------------------------------------┐
+       ┌◀──────────────────────────────────────┐
        │                                       │
-       └-->Development-->Testing-->Deployment->┘
+       └──▶Development──>Testing──>Deployment─▶┘
 ```
 
 In this example, found in `06-production-workflow`, the specific workflow will look like this:
 ```
-       ┌----------------------------------┐
+       ┌──────────────────────────────────┐
        │           Github Repo            │ 
-       └----------------------------------┘
-       feature --- pull request ---> master ---> Travis CI ---> Deploy
+       └──────────────────────────────────┘
+       feature ───▶ pull request ───▶ master ───▶ Travis CI ───▶ Deploy
         branch                       branch      (testing)      to AWS
-          ^                                                       │
-          │                                                       │
-          │                                                       │
-   Develop Locally <----------------------------------------------┘
+          ▲                                                        │
+          │                                                        │
+          │                                                        │
+   Develop Locally <───────────────────────────────────────────────┘
 ```
 
 Install dependencies for node, npm, and react, if not already installed on your local machine:
