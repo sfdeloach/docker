@@ -3,7 +3,11 @@ Course notes from Stephen Grider's lectures on Udemy.com
 
 ## Contents
 1. [Dive into Docker](#dive-into-docker)
-2. [Manipulating Containers with the Docker Client](manipulating-containers-with-the-docker-client)
+2. [Manipulating Containers with the Docker Client](#manipulating-containers-with-the-docker-client)
+3. [Building Custom Images Through Docker Server](#building-custom-images-through-docker-server)
+4. [Making Real Projects with Docker](#making-real-projects-with-docker)
+5. [Docker Compose with Multiple Local Containers](#docker-compose-with-multiple-local-containers)
+6. [Creating a Production Grade Workflow](#creating-a-production-grade-workflow)
 
 ## Dive into Docker
 **image**
@@ -232,7 +236,7 @@ To stop containers created by Docker Compose:
 docker-compose down
 ```
 
-## Creating a Production-Grade Workflow
+## Creating a Production Grade Workflow
 
 The workflow is a cycle:
 ```
