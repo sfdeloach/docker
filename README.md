@@ -8,6 +8,7 @@ Course notes from Stephen Grider's lectures on Udemy.com
 4. [Making Real Projects with Docker](#making-real-projects-with-docker)
 5. [Docker Compose with Multiple Local Containers](#docker-compose-with-multiple-local-containers)
 6. [Creating a Production Grade Workflow](#creating-a-production-grade-workflow)
+7. [Continuous Integration and Deployment with AWS](#continuous-integration-and-deployment-with-aws)
 
 ## Dive into Docker
 **image**
@@ -258,6 +259,9 @@ In this example, found in `06-production-workflow`, the specific workflow will l
    Develop Locally <───────────────────────────────────────────────┘
 ```
 
+This section and the next, [Continuous Integration and Deployment with AWS]
+(#continuous-integration-and-deployment-with-aws), will cover the workflow cycle in greater detail.
+
 Install dependencies for node, npm, and react, if not already installed on your local machine:
 ```
   $ # Fedora package manager
@@ -336,8 +340,8 @@ services:
       - /app/node_modules
       - .:/app
 
-# The context allows a reference to a different directory
-#   if the current directory is not the working directory.
+# The context allows a reference to a different directory if the current directory is not the
+# working directory.
 ```
 
 To run tests, override the run command as demonstrated before:
@@ -349,12 +353,14 @@ Running the command as demonstrated above causes a small problem. A new containe
 its own filesystem, therefore, it is unable to detect any live changes to the source. There are
 two solutions. The first solution uses the `exec` command on the running running container:
 ```
-  $ docker exec -it <image id> npm run test
+  $ docker exec -it <container id> npm run test
 ```
 
 The second solution is to setup an additional service in `docker-compose.yml`:
 ```
-...(append this to the bottom of the existing file)...
+...
+  (append this to the bottom of the existing file)
+...
 
   tests:
     build:
@@ -367,6 +373,6 @@ The second solution is to setup an additional service in `docker-compose.yml`:
 ```
 
 There is a drawback with this approach. The test results update as expected, however, the terminal
-is not attached and does not allow for an interactive experience.
-
+is not attached and does not allow for an interactive experience. Consider which option may be best
+for your current testing objectives.
 
