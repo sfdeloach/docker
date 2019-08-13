@@ -183,7 +183,7 @@ using a Dockerfile. Take notice of the following:
 - specify a tag with a base for more images
 - set a working directory inside your container
 - copy build files from your local machine into your container
-- map network ports to you container
+- map network ports to your container
 - put thought into the order of commands in the Dockerfile to minimize rebuild times
 
 ## Docker Compose with Multiple Local Containers
