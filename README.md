@@ -286,9 +286,9 @@ docker-compose down
 The workflow is a cycle:
 
 ```bash
-       ┌◀──────────────────────────────────────┐
-       │                                       │
-       └──▶Development──>Testing──>Deployment─▶┘
+       ┌<───────────────────<─────────────────────┐
+       │                                          │
+       └──>Development──>Testing──>Deployment───>─┘
 ```
 
 In this example, found in `06-production-workflow`, the specific workflow will look like this:
