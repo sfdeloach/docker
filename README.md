@@ -372,7 +372,7 @@ docker run -p 3000:3000 -v /app/node_modules -v $(pwd):/app <image id>
 #                       ^this is a bookmark  ^this is a mapping
 ```
 
-**DETOUR START**
+**<!-- DETOUR START**
 
 A simpler development container can be created than the one demonstrated above. Only the
 `package.json` file is needed to run the initial npm script and only a mapping to the working
@@ -392,7 +392,7 @@ Build the image as shown above, then run with only one mapping:
 docker run -p 3000:3000 -v $(pwd):/app <image id>
 ```
 
-**DETOUR END**
+**DETOUR END -->**
 
 The above run command is rather lengthy. Docker Compose to the rescue!
 
