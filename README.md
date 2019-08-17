@@ -317,9 +317,7 @@ npm install -g create-react-app
 ```
 
 Create a new react app, run the out of the box test, and build the application to make sure the
-application works. Note that these steps will create the `node_modules` directory, which will
-contain a significant number of directories and files. In a later step, this directory will be
-removed in order to prevent unnecessary duplication:
+application works:
 
 ```bash
 create-react-app frontend
@@ -329,6 +327,14 @@ npm run test
 npm run build
 ```
 
+Note that the preceding commands created the `node_modules` directory, which will contain a
+significant number of directories and files. For the purpose of demonstrating docker volumes in a
+later step, remove the `node_modules` directory:
+
+```bash
+rm -rf node_modules
+```
+
 Remaining in the `frontend` directory, create a development Dockerfile:
 
 ```bash
@@ -336,9 +342,8 @@ touch Dockerfile.dev
 ```
 
 This file will use the `npm run start` command during development. Later we will create the
-conventional `Dockerfile` that will use the `npm run build` command for production.
-
-The contents of the `Dockerfile.dev` will provide the setup of our development container:
+conventional `Dockerfile` that will use the `npm run build` command for production.  The contents
+of the `Dockerfile.dev` will provide the setup of our development container:
 
 ```Dockerfile
 (Dockerfile.dev)
@@ -347,9 +352,9 @@ FROM node:alpine
 WORKDIR '/app'
 
 COPY package.json .
+
 RUN npm install
 
-# Be sure to delete the local node_modules directory if this "shortcut" copy command is used
 COPY . .
 
 CMD ["npm","run","start"]
@@ -369,14 +374,19 @@ used earlier to map a container's port to the local machine's port:
 
 ```bash
 docker run -p 3000:3000 -v /app/node_modules -v $(pwd):/app <image id>
-#                       ^this is a bookmark  ^this is a mapping
+#                          ^ bookmark           ^ mapping
 ```
 
----
+This example is purposefully designed to demonstrate the use of volume bookmarks and volume maps.
+In this example, we deleted the `node_modules` directory locally, which contained scripts needed to
+start our development environment. Mapping the contents of our local working directory will not
+provide it since it no longer exists. However, recall that the command `npm install` was run on
+our container during the build. This installed a copy of `node_modules` in the container. The
+bookmark mounts a directory that already exists inside the container so that it may gain access.
 
-> As an aside, a simpler development container can be created than the one demonstrated above. Only
-> the `package.json` file is needed to run the initial npm script and only a mapping to the working
-> directory is needed:
+As an aside, a simpler development container could be created. Only the `package.json` file would
+be needed to run the initial npm script and only a mapping to the working directory is needed if
+`node_modules` was not removed:
 
 ```Dockerfile
 (revised Dockerfile.dev)
@@ -386,17 +396,15 @@ COPY package.json .
 CMD ["npm","run","start"]
 ```
 
-> Build the image as shown above, then run with only one mapping:
+> Build the image as shown above, then run with only the mapping:
 
 ```bash
 docker run -p 3000:3000 -v $(pwd):/app <image id>
 ```
 
-> Alright, enough of an aside...returning to the prior example!
-
----
-
-The above run command is rather lengthy. Docker Compose to the rescue!
+The container would be able find `node_modules` on the local machine using this approach. Returning
+to the contrived example that uses a bookmark for the `node_modules` directory, the run command is
+rather lengthy. Docker Compose to the rescue!
 
 ```bash
 touch docker-compose.yml
