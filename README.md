@@ -308,7 +308,8 @@ In this example, found in `06-production-workflow`, the specific workflow will l
 This section and the next, [Continuous Integration and Deployment with AWS](#continuous-integration-and-deployment-with-aws),
 will cover the workflow cycle in greater detail.
 
-Install dependencies for node, npm, and react, if not already installed on your local machine:
+To begin, first install dependencies for node, npm, and react, if not already installed on your
+local machine:
 
 ```bash
 # Fedora package manager
@@ -382,7 +383,8 @@ In this example, we deleted the `node_modules` directory locally, which containe
 start our development environment. Mapping the contents of our local working directory will not
 provide it since it no longer exists. However, recall that the command `npm install` was run on
 our container during the build. This installed a copy of `node_modules` in the container. The
-bookmark mounts a directory that already exists inside the container so that it may gain access.
+bookmark tells the container to look inside its own file system for any references to the
+`node_modules` directory.
 
 As an aside, a simpler development container could be created. Only the `package.json` file would
 be needed to run the initial npm script and only a mapping to the working directory is needed if
@@ -396,7 +398,7 @@ COPY package.json .
 CMD ["npm","run","start"]
 ```
 
-> Build the image as shown above, then run with only the mapping:
+Build the image as shown above, then run with only the mapping:
 
 ```bash
 docker run -p 3000:3000 -v $(pwd):/app <image id>
