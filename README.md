@@ -372,11 +372,11 @@ docker run -p 3000:3000 -v /app/node_modules -v $(pwd):/app <image id>
 #                       ^this is a bookmark  ^this is a mapping
 ```
 
-**<!-- DETOUR START**
+---
 
-A simpler development container can be created than the one demonstrated above. Only the
-`package.json` file is needed to run the initial npm script and only a mapping to the working
-directory is needed:
+> As an aside, a simpler development container can be created than the one demonstrated above. Only
+> the `package.json` file is needed to run the initial npm script and only a mapping to the working
+> directory is needed:
 
 ```Dockerfile
 (revised Dockerfile.dev)
@@ -386,13 +386,15 @@ COPY package.json .
 CMD ["npm","run","start"]
 ```
 
-Build the image as shown above, then run with only one mapping:
+> Build the image as shown above, then run with only one mapping:
 
 ```bash
 docker run -p 3000:3000 -v $(pwd):/app <image id>
 ```
 
-**DETOUR END -->**
+> Alright, enough of an aside...returning to the prior example!
+
+---
 
 The above run command is rather lengthy. Docker Compose to the rescue!
 
