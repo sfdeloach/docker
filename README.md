@@ -27,19 +27,19 @@ Course notes from Stephen Grider's lectures on Udemy.com
 Verify installation:  
 
 ```bash
-docker run hello-world
+  $ docker run hello-world
 ```
 
 Info on installation:  
 
 ```bash
-docker version
+  $ docker version
 ```
 
 Create and run a new container from image:  
 
 ```bash
-docker run <image name>
+  $ docker run <image name>
 ```
 
 > If the image is not already loaded then it will pull the image from the repo before it starts
@@ -47,19 +47,19 @@ docker run <image name>
 Default command override:  
 
 ```bash
-docker run <image name> command
+  $ docker run <image name> command
 ```
 
 For example this prints "hi there" to terminal:  
 
 ```bash
-docker run busybox echo "hi there"
+  $ docker run busybox echo "hi there"
 ```
 
 List of running containers:  
 
 ```bash
-docker ps
+  $ docker ps
 ```
 
 > Alias for `docker container ls`. By default, only running containers in the local repo are listed.
@@ -67,7 +67,7 @@ docker ps
 List of all containers, running and stopped:  
 
 ```bash
-docker ps -a
+  $ docker ps -a
 ```
 
 > The `-a` flag is short for `--all`. See `man docker container-ls` for more info.
@@ -75,27 +75,27 @@ docker ps -a
 The run command combines the create and start commands:  
 
 ```bash
-docker run <image name>
-# same as
-docker create <image name> && docker start <container id>
+  $ docker run <image name>
+  # same as
+  $ docker create <image name> && docker start <container id>
 ```
 
 Creates a new container from an image:  
 
 ```bash
-docker create <image name>
+  $ docker create <image name>
 ```
 
 Starts the specified container, echos the id:  
 
 ```bash
-docker start <container id>
+  $ docker start <container id>
 ```
 
 The `-a` flag attaches to the running container:  
 
 ```bash
-docker start -a <container id>
+  $ docker start -a <container id>
 ```
 
 > A container can be restarted using the start command combined with the target container id  
@@ -103,19 +103,19 @@ docker start -a <container id>
 Remove stopped containers:  
 
 ```bash
-docker system prune
+  $ docker system prune
 ```
 
 Get logs from a container:  
 
 ```bash
-docker logs <container id>
+  $ docker logs <container id>
 ```
 
 Stop a container (SIGTERM):  
 
 ```bash
-docker stop <container id>
+  $ docker stop <container id>
 ```
 
 > If unsuccessful after 10 seconds, this command will revert to the kill command
@@ -123,7 +123,7 @@ docker stop <container id>
 Kill a container (SIGKILL):  
 
 ```bash
-docker kill <container id>
+  $ docker kill <container id>
 ```
 
 > Does not allow the container to gracefully shutdown, `stop` command is preferred
@@ -131,7 +131,7 @@ docker kill <container id>
 Execute a command in a running container:  
 
 ```bash
-docker exec -it <container id> <command>
+  $ docker exec -it <container id> <command>
 ```
 
 > Run a command in a running container. The `-i` keeps STDIN open and will make the session
@@ -140,7 +140,7 @@ interactive. The `-t` flag will allocate a pseudo-TTY and make the session prett
 Get a command prompt in a container:  
 
 ```bash
-docker exec -it <container id> bash
+  $ docker exec -it <container id> bash
 ```
 
 > Provides interactive bash shell on a running container.
@@ -148,13 +148,13 @@ docker exec -it <container id> bash
 Run (create & start) a new container and bring up an interactive shell:  
 
 ```bash
-docker run -it <image name> sh
+  $ docker run -it <image name> sh
 ```
 
 Run a new Ubuntu container and start bash shell:
 
 ```bash
-docker run -it ubuntu bash
+  $ docker run -it ubuntu bash
 ```
 
 > Docker containers run on isolated filesystems.
@@ -162,9 +162,8 @@ docker run -it ubuntu bash
 View docker images on your local machine:  
 
 ```bash
-docker image ls
-# or
-docker images
+  $ docker image ls    ### or ###
+  $ docker images
 ```
 
 ## Building Custom Images Through Docker Server
@@ -185,7 +184,7 @@ CMD ["redis-server"]
 Building the image (command executed from the same directory as `Dockerfile`):  
 
 ```bash
-docker build .
+  $ docker build .
 ```  
 
 > Docker will cache dependencies for faster rebuilds
@@ -193,7 +192,7 @@ docker build .
 Build an image with repository info, name, and tag (version):  
 
 ```bash
-docker build -t sfdeloach/redis:latest .
+  $ docker build -t sfdeloach/redis:latest .
 ```  
 
 > By convention, the tag is prefixed with your Docker ID
@@ -237,7 +236,7 @@ other container on the network.
 A `docker-compose.yml` is used by Docker Compose to create containers.
 
 ```bash
-touch docker-compose.yml
+  $ touch docker-compose.yml
 ```
 
 The contents of `docker-compose.yml`:
@@ -259,33 +258,33 @@ services:
 The containers are built by running the command:
 
 ```bash
-docker-compose up --build --project-name visits
+  $ docker-compose up --build --project-name visits
 ```
 
 To see a list of running containers created by Docker Compose, be sure you are in the project
 folder and run:
 
 ```bash
-docker-compose ps
+  $ docker-compose ps
 ```
 
 To launch containers in the background:
 
 ```bash
-docker-compose up -d
+  $ docker-compose up -d
 ```
 
 To stop containers created by Docker Compose:
 
 ```bash
-docker-compose down
+  $ docker-compose down
 ```
 
 ## Creating a Production Grade Workflow
 
 The workflow is a cycle:
 
-```bash
+```
        ┌<───────────────────<─────────────────────┐
        │                                          │
        └──>Development──>Testing──>Deployment───>─┘
@@ -293,7 +292,7 @@ The workflow is a cycle:
 
 In this example, found in `06-production-workflow`, the specific workflow will look like this:
 
-```bash
+```
        ┌──────────────────────────────────┐
        │           Github Repo            │
        └──────────────────────────────────┘
@@ -312,20 +311,19 @@ To begin, first install dependencies for node, npm, and react, if not already in
 local machine:
 
 ```bash
-# Fedora package manager
-dnf install node npm
-npm install -g create-react-app
+  $ dnf install node npm    ### Fedora package manager ###
+  $ npm install -g create-react-app
 ```
 
 Create a new react app, run the out of the box test, and build the application to make sure the
 application works:
 
 ```bash
-create-react-app frontend
-cd frontend
-npm start
-npm run test
-npm run build
+  $ create-react-app frontend
+  $ cd frontend
+  $ npm start
+  $ npm run test
+  $ npm run build
 ```
 
 Note that the preceding commands created the `node_modules` directory, which will contain a
@@ -333,13 +331,13 @@ significant number of directories and files. For the purpose of demonstrating do
 later step, remove the `node_modules` directory:
 
 ```bash
-rm -rf node_modules
+  $ rm -rf node_modules
 ```
 
 Remaining in the `frontend` directory, create a development Dockerfile:
 
 ```bash
-touch Dockerfile.dev
+  $ touch Dockerfile.dev
 ```
 
 This file will use the `npm run start` command during development. Later we will create the
@@ -365,7 +363,7 @@ Running `docker build .` will look for the default `Dockerfile`, which does not 
 The build file must be explicitly defined using the `-f` flag:
 
 ```bash
-docker build -t sfdeloach/react-dev -f Dockerfile.dev .
+  $ docker build -t sfdeloach/react-dev -f Dockerfile.dev .
 ```
 
 Options added to the run command allow bookmarks and mappings to a volume. This will allow the
@@ -374,8 +372,8 @@ and mappings use the same `-v` flag. The only difference is the colon, which is 
 used earlier to map a container's port to the local machine's port:
 
 ```bash
-docker run -p 3000:3000 -v /app/node_modules -v $(pwd):/app <image id>
-#                          ^ bookmark           ^ mapping
+  $ docker run -p 3000:3000 -v /app/node_modules -v $(pwd):/app <image id>
+  #                          ^ bookmark           ^ mapping
 ```
 
 This example is purposefully designed to demonstrate the use of volume bookmarks and volume maps.
@@ -391,7 +389,6 @@ be needed to run the initial npm script and only a mapping to the working direct
 `node_modules` was not removed:
 
 ```Dockerfile
-(revised Dockerfile.dev)
 FROM node:alpine
 WORKDIR '/app'
 COPY package.json .
@@ -401,7 +398,7 @@ CMD ["npm","run","start"]
 Build the image as shown above, then run with only the mapping:
 
 ```bash
-docker run -p 3000:3000 -v $(pwd):/app <image id>
+  $ docker run -p 3000:3000 -v $(pwd):/app <image id>
 ```
 
 The container would be able find `node_modules` on the local machine using this approach. Returning
@@ -409,7 +406,7 @@ to the contrived example that uses a bookmark for the `node_modules` directory, 
 rather lengthy. Docker Compose to the rescue!
 
 ```bash
-touch docker-compose.yml
+  $ touch docker-compose.yml
 ```
 
 The contents of `docker-compose.yml`:
@@ -434,7 +431,7 @@ services:
 To run tests, override the run command as demonstrated before:
 
 ```bash
-docker run -it <image id> npm run test
+  $ docker run -it <image id> npm run test
 ```
 
 Running the command as demonstrated above causes a small problem. A new container is created with
@@ -443,7 +440,7 @@ two solutions, each with advantages and disadvantages. The first solution uses t
 on the running running container:
 
 ```bash
-docker exec -it <container id> npm run test
+  $ docker exec -it <container id> npm run test
 ```
 
 The drawback on this approach requires a second step and keeping the container ID in mind.  The
@@ -502,8 +499,8 @@ Note the following:
 We are now ready to build our production image and run it:
 
 ```bash
-docker build .
-docker run -p 8080:80 <image id>
+  $ docker build .
+  $ docker run -p 8080:80 <image id>
 ```
 
 ## Continuous Integration and Deployment with AWS
