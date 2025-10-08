@@ -20,6 +20,9 @@ COPY ./app.js ./
 # the default command, run from the working directory inside the container
 CMD ["npm", "start"]
 
+# To build an image from a Dockerfile
+# $ docker build -t sfdeloach/simpleserver .
+
 # To map a local port to a container port:
 # $ docker run -p 80:3000 <image id>
 # or
