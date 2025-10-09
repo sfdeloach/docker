@@ -2,7 +2,7 @@
 FROM alpine:3.9.4
 
 # establish the working directory in the container
-WORKDIR /home/application
+WORKDIR /usr/src/app
 
 # run the alpine package manager to install node and npm
 RUN apk add --update nodejs npm

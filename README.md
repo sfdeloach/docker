@@ -2,173 +2,53 @@
 
 Course notes from Stephen Grider's lectures on Udemy.com
 
-## Contents
+## contents
 
-1. [Dive into Docker](#dive-into-docker)
-2. [Manipulating Containers with the Docker Client](#manipulating-containers-with-the-docker-client)
-3. [Building Custom Images Through Docker Server](#building-custom-images-through-docker-server)
-4. [Making Real Projects with Docker](#making-real-projects-with-docker)
-5. [Docker Compose with Multiple Local Containers](#docker-compose-with-multiple-local-containers)
-6. [Creating a Production Grade Workflow](#creating-a-production-grade-workflow)
-7. [Continuous Integration and Deployment with AWS](#continuous-integration-and-deployment-with-aws)
+- [Docker and Kubernetes: The Complete Guide](#docker-and-kubernetes-the-complete-guide)
+  - [contents](#contents)
+  - [definitions](#definitions)
+  - [basics with the CLI](#basics-with-the-cli)
+  - [custom images](#custom-images)
+  - [making real projects (Section 04)](#making-real-projects-section-04)
+  - [docker compose - multiple containers (Section 05)](#docker-compose---multiple-containers-section-05)
+  - [creating a production grade workflow](#creating-a-production-grade-workflow)
+  - [CI/CD w/ AWS](#cicd-w-aws)
 
-## Dive into Docker
+## definitions
 
-### image
+- **image:** A read-only template that contains all the necessary components—such as application code, runtime, system tools, libraries, and settings—to run a software application within a container. Think of it as a cookie cutter.
+- **container:** A lightweight, standalone, executable package that includes everything needed to run an application, such as the code, runtime, system tools, libraries, and configuration files. An instance of an image. Think cookie.
 
-> Containers are created from images. Think cookie cutter.
-
-### container
-
-> An instance of an image. Think cookie.
-
-## Manipulating Containers with the Docker Client
-
-Verify installation:  
+## basics with the CLI
 
 ```bash
-  $ docker run hello-world
+  $ docker run hello-world            # verify installation
+  $ docker version                    # info
+  $ docker run <image>                # create & run container from an image, download if needed
+  $ docker run <image> <command>      # override the default image command
+  $ docker run busybox echo "hello"   # example
+  $ docker ps                         # list running containers
+  $ docker container ls               # same as `docker ps`
+  $ docker ps -a                      # list all containers
+  $ docker create <image>             # step 1: create a new image
+  $ docker start <container>          # step 2: start new instance from image
+  $ docker run <image>                # combines steps 1 & 2
+  $ docker start -a <container>       # start and attach to a stopped container
+  $ docker run -it <image> sh         # create, start, and attach w/ sh console shell
+  $ docker run -it ubuntu bash        # create, start, attach to a ubuntu bash console shell
+  $ docker exec -it <container> <cmd> # run and attach to a running container with command
+  $ docker exec -it <container> bash  # example command prompt in a running container
+  $ docker stop <container>           # stop container via SIGTERM (preferred)
+  $ docker kill <container>           # kill container via SIGKILL
+  $ docker system prune               # deletes stopped containers
+  $ docker logs <container>           # view console output
+  $ docker image ls                   # view downloaded/created local images
+  $ docker images                     # same as `docker image ls`
 ```
 
-Info on installation:  
+## custom images
 
-```bash
-  $ docker version
-```
-
-Create and run a new container from image:  
-
-```bash
-  $ docker run <image name>
-```
-
-> If the image is not already loaded then it will pull the image from the repo before it starts
-
-Default command override:  
-
-```bash
-  $ docker run <image name> command
-```
-
-For example this prints "hi there" to terminal:  
-
-```bash
-  $ docker run busybox echo "hi there"
-```
-
-List of running containers:  
-
-```bash
-  $ docker ps
-```
-
-> Alias for `docker container ls`. By default, only running containers in the local repo are listed.
-
-List of all containers, running and stopped:  
-
-```bash
-  $ docker ps -a
-```
-
-> The `-a` flag is short for `--all`. See `man docker container-ls` for more info.
-
-The run command combines the create and start commands:  
-
-```bash
-  $ docker run <image name>
-  # same as
-  $ docker create <image name> && docker start <container id>
-```
-
-Creates a new container from an image:  
-
-```bash
-  $ docker create <image name>
-```
-
-Starts the specified container, echos the id:  
-
-```bash
-  $ docker start <container id>
-```
-
-The `-a` flag attaches to the running container:  
-
-```bash
-  $ docker start -a <container id>
-```
-
-> A container can be restarted using the start command combined with the target container id  
-
-Remove stopped containers:  
-
-```bash
-  $ docker system prune
-```
-
-Get logs from a container:  
-
-```bash
-  $ docker logs <container id>
-```
-
-Stop a container (SIGTERM):  
-
-```bash
-  $ docker stop <container id>
-```
-
-> If unsuccessful after 10 seconds, this command will revert to the kill command
-
-Kill a container (SIGKILL):  
-
-```bash
-  $ docker kill <container id>
-```
-
-> Does not allow the container to gracefully shutdown, `stop` command is preferred
-
-Execute a command in a running container:  
-
-```bash
-  $ docker exec -it <container id> <command>
-```
-
-> Run a command in a running container. The `-i` keeps STDIN open and will make the session
-interactive. The `-t` flag will allocate a pseudo-TTY and make the session prettier.  
-
-Get a command prompt in a container:  
-
-```bash
-  $ docker exec -it <container id> bash
-```
-
-> Provides interactive bash shell on a running container.
-
-Run (create & start) a new container and bring up an interactive shell:  
-
-```bash
-  $ docker run -it <image name> sh
-```
-
-Run a new Ubuntu container and start bash shell:
-
-```bash
-  $ docker run -it ubuntu bash
-```
-
-> Docker containers run on isolated filesystems.
-
-View docker images on your local machine:  
-
-```bash
-  $ docker image ls    ### or ###
-  $ docker images
-```
-
-## Building Custom Images Through Docker Server
-
-Custom images are built with a `Dockerfile`:  
+Custom images are built with a `Dockerfile`:
 
 ```Dockerfile
 # Use an existing docker image as a base
@@ -181,23 +61,23 @@ RUN apk add --update redis
 CMD ["redis-server"]
 ```
 
-Building the image (command executed from the same directory as `Dockerfile`):  
+Building the image (command executed from the same directory as `Dockerfile`):
 
 ```bash
   $ docker build .
-```  
+```
 
 > Docker will cache dependencies for faster rebuilds
 
-Build an image with repository info, name, and tag (version):  
+Build an image with repository info, name, and tag (version):
 
 ```bash
   $ docker build -t sfdeloach/redis:latest .
-```  
+```
 
 > By convention, the tag is prefixed with your Docker ID
 
-Another (nonsensical) example:  
+Another (nonsensical) example:
 
 ```Dockerfile
 # Use an existing image of Fedora
@@ -212,18 +92,19 @@ RUN dnf install -y gcc
 CMD ["ping","archlinux.org"]
 ```
 
-## Making Real Projects with Docker
+## making real projects (Section 04)
 
-See `Dockerfile` in `04-simple server` for an example of how to build a nodeJS express server image
-using a Dockerfile. Take notice of the following:
+See `Dockerfile` in `04-simple server` for an example of how to build a nodeJS express server image using a Dockerfile. Take notice of the following:
 
-- specify a tag with a base for more images
+- specify a tag with a base image for specificity
 - set a working directory inside your container
 - copy build files from your local machine into your container
 - map network ports to your container
 - put thought into the order of commands in the Dockerfile to minimize rebuild times
 
-## Docker Compose with Multiple Local Containers
+## docker compose - multiple containers (Section 05)
+
+TODO: CLI becomes too clunky, docker compose is used in industry to manage complexity
 
 It is possible to place multiple services inside a container, however, this is not good practice.
 Each service should be placed in its own container so that there is greater flexibility when
@@ -231,41 +112,33 @@ scaling.
 
 Docker Compose sets up a single network for your application(s) by default, adding each container
 for a service to the default network. Containers on a single network can reach and discover every
-other container on the network.
+other container on the network. External connections must be explicitly defined.
 
 A `docker-compose.yml` is used by Docker Compose to create containers.
 
-```bash
-  $ touch docker-compose.yml
-```
-
-The contents of `docker-compose.yml`:
+The contents of a simple `docker-compose.yml` file:
 
 ```yml
-version: '3'
-services:
-  redis-server:
-    image: 'redis'
-  node-app:
-    restart: always
-    build: .
-    ports:
-      - "80:3000"
-
-# restart policies include "no" (default), always, on-failure, and unless stopped
+version: "3.8"      # as of October 2025, 3.8 is latest version
+services:           # services can be thought of as containers
+  redis-server:     # first container, this name becomes its hostname
+    image: "redis"  # image available on docker hub
+  node-app:         # second container w/ host name 'node-app'
+    restart: always # restart policies include "no" (default), always, on-failure, and unless stopped
+    build: .        # looks for the Dockerfile to build this image
+    ports:          # must explicitly define a port if external connection desired
+      - "80:3000"   # maps port 80 on the local machine to port 3000 in the container instance
 ```
 
-The containers are built by running the command:
-
 ```bash
-  $ docker-compose up --build --project-name visits
+  $ docker-compose up build -p visits # build and run containers
+  $ docker-compose ps 
 ```
 
 To see a list of running containers created by Docker Compose, be sure you are in the project
 folder and run:
 
 ```bash
-  $ docker-compose ps
 ```
 
 To launch containers in the background:
@@ -280,7 +153,7 @@ To stop containers created by Docker Compose:
   $ docker-compose down
 ```
 
-## Creating a Production Grade Workflow
+## creating a production grade workflow
 
 The workflow is a cycle:
 
@@ -341,7 +214,7 @@ Remaining in the `frontend` directory, create a development Dockerfile:
 ```
 
 This file will use the `npm run start` command during development. Later we will create the
-conventional `Dockerfile` that will use the `npm run build` command for production.  The contents
+conventional `Dockerfile` that will use the `npm run build` command for production. The contents
 of the `Dockerfile.dev` will provide the setup of our development container:
 
 ```Dockerfile
@@ -412,7 +285,7 @@ rather lengthy. Docker Compose to the rescue!
 The contents of `docker-compose.yml`:
 
 ```yml
-version: '3'
+version: "3"
 services:
   web:
     build:
@@ -423,7 +296,6 @@ services:
     volumes:
       - /app/node_modules
       - .:/app
-
 # The context allows a reference to a different directory if the current directory is not the
 # working directory.
 ```
@@ -443,7 +315,7 @@ on the running running container:
   $ docker exec -it <container id> npm run test
 ```
 
-The drawback on this approach requires a second step and keeping the container ID in mind.  The
+The drawback on this approach requires a second step and keeping the container ID in mind. The
 second solution is to setup an additional service in `docker-compose.yml`:
 
 ```Dockerfile
@@ -469,10 +341,10 @@ To this point in the exercise, we have setup a development and testing container
 move to production. This will be accomplished in a multi-step build process. In this case it will
 occur in one `Dockerfile` that specifies two phases: **BUILD** and **RUN**
 
-The *build phase* will use `node:alpine` as a base image and install all dependencies in order to
+The _build phase_ will use `node:alpine` as a base image and install all dependencies in order to
 build the react app.
 
-The *run phase* will use `nginx` as a base image, copy over the results of the *build phase* and
+The _run phase_ will use `nginx` as a base image, copy over the results of the _build phase_ and
 start the Nginx server.
 
 The multi phase `Dockerfile`:
@@ -503,4 +375,4 @@ We are now ready to build our production image and run it:
   $ docker run -p 8080:80 <image id>
 ```
 
-## Continuous Integration and Deployment with AWS
+## CI/CD w/ AWS
