@@ -6,14 +6,21 @@ import os
 
 load_dotenv()
 
+# Load environment variables with defaults where appropriate
 dbname = os.getenv("POSTGRES_DB")
 user = os.getenv("POSTGRES_USER")
 password = os.getenv("POSTGRES_PASSWORD")
+host = os.getenv("POSTGRES_HOST", "database")  # Default to 'database' for Docker setups
+port = os.getenv("POSTGRES_PORT", "5432")  # Default PostgreSQL port
 
-if (not dbname) or (not user) or (not password):
-    raise ValueError("Database configuration environment variables are not set")
+# Validate required env vars
+if not all([dbname, user, password]):
+    raise ValueError(
+        "Required database configuration environment variables are not set"
+    )
 
-db_settings = f"dbname={dbname} user={user} password={password} host=database"
+# Construct connection string
+db_settings = f"dbname={dbname} user={user} password={password} host={host} port={port}"
 
 app = FastAPI()
 

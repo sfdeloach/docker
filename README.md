@@ -12,7 +12,6 @@ Course notes from Stephen Grider's lectures on Udemy.com
   - [making real projects (Section 04)](#making-real-projects-section-04)
   - [docker compose - multiple containers (Section 05)](#docker-compose---multiple-containers-section-05)
   - [creating a production grade workflow (Section 06)](#creating-a-production-grade-workflow-section-06)
-  - [CI/CD w/ AWS](#cicd-w-aws)
 
 ## definitions
 
@@ -101,9 +100,9 @@ Up to this point, we have used the Docker CLI to work with containers. As projec
 
 Docker Compose sets up a single network for your application(s) by default, adding each container for a service to the default network. Containers on a single network can reach and discover every other container on the network. External connections must be explicitly defined.
 
-A `docker-compose.yml` is used by Docker Compose to create containers.
+A `compose.yml` is used by Docker Compose to create containers.
 
-The contents of a simple `docker-compose.yml` file:
+The contents of a simple `compose.yml` file:
 
 ```yml
 # services define a resource that can be scaled and managed independently
@@ -152,30 +151,17 @@ The workflow is a cycle:
 
 ![workflow cycle diagram](./images/01-workflow-cycle.png)
 
-In this example, found in `06-production-workflow`, the specific workflow will look like this:
+In this section, the workflow will look like this:
 
-```
-       ┌──────────────────────────────────┐
-       │           Github Repo            │
-       └──────────────────────────────────┘
-       feature ───▶ pull request ───▶ master ───▶ Travis CI ───▶ Deploy
-        branch                       branch      (testing)      to AWS
-          ▲                                                        │
-          │                                                        │
-          │                                                        │
-   Develop Locally <───────────────────────────────────────────────┘
-```
+![flow specifics](./images/02-flow-specifics.png)
 
-This section and the next, [Continuous Integration and Deployment with AWS](#continuous-integration-and-deployment-with-aws),
-will cover the workflow cycle in greater detail.
+**Thoughts on rewriting this section from here:**
 
-To begin, first install dependencies for node, npm, and react, if not already installed on your
-local machine:
+1. archive existing
+2. setup react w/ vite
+3. two containers, one for dev, one for build
 
-```bash
-  $ dnf install node npm    ### Fedora package manager ###
-  $ npm install -g create-react-app
-```
+**End of thoughts**
 
 Create a new react app, run the out of the box test, and build the application to make sure the
 application works:
@@ -202,9 +188,7 @@ Remaining in the `frontend` directory, create a development Dockerfile:
   $ touch Dockerfile.dev
 ```
 
-This file will use the `npm run start` command during development. Later we will create the
-conventional `Dockerfile` that will use the `npm run build` command for production. The contents
-of the `Dockerfile.dev` will provide the setup of our development container:
+This file will use the `npm run start` command during development. Later we will create the conventional `Dockerfile` that will use the `npm run build` command for production. The contents of the `Dockerfile.dev` will provide the setup of our development container:
 
 ```Dockerfile
 (Dockerfile.dev)
@@ -228,27 +212,16 @@ The build file must be explicitly defined using the `-f` flag:
   $ docker build -t sfdeloach/react-dev -f Dockerfile.dev .
 ```
 
-Options added to the run command allow bookmarks and mappings to a volume. This will allow the
-react development server the ability to detect changes made locally. Notice that both bookmarks
-and mappings use the same `-v` flag. The only difference is the colon, which is a similar syntax
-used earlier to map a container's port to the local machine's port:
+Options added to the run command allow bookmarks and mappings to a volume. This will allow the react development server the ability to detect changes made locally. Notice that both bookmarks and mappings use the same `-v` flag. The only difference is the colon, which is a similar syntax used earlier to map a container's port to the local machine's port:
 
 ```bash
   $ docker run -p 3000:3000 -v /app/node_modules -v $(pwd):/app <image id>
-  #                          ^ bookmark           ^ mapping
+  $ ######################## ^ bookmark ######### ^ mapping ##############
 ```
 
-This example is purposefully designed to demonstrate the use of volume bookmarks and volume maps.
-In this example, we deleted the `node_modules` directory locally, which contained scripts needed to
-start our development environment. Mapping the contents of our local working directory will not
-provide it since it no longer exists. However, recall that the command `npm install` was run on
-our container during the build. This installed a copy of `node_modules` in the container. The
-bookmark tells the container to look inside its own file system for any references to the
-`node_modules` directory.
+This example is purposefully designed to demonstrate the use of volume bookmarks and volume maps. In this example, we deleted the `node_modules` directory locally, which contained scripts needed to start our development environment. Mapping the contents of our local working directory will not provide it since it no longer exists. However, recall that the command `npm install` was run on our container during the build. This installed a copy of `node_modules` in the container. The bookmark tells the container to look inside its own file system for any references to the `node_modules` directory. This bookmark is intentionally place before the mapping.
 
-As an aside, a simpler development container could be created. Only the `package.json` file would
-be needed to run the initial npm script and only a mapping to the working directory is needed if
-`node_modules` was not removed:
+As an aside, a simpler development container could be created. Only the `package.json` file would be needed to run the initial npm script and only a mapping to the working directory is needed if `node_modules` was not removed:
 
 ```Dockerfile
 FROM node:alpine
@@ -263,18 +236,15 @@ Build the image as shown above, then run with only the mapping:
   $ docker run -p 3000:3000 -v $(pwd):/app <image id>
 ```
 
-The container would be able find `node_modules` on the local machine using this approach. Returning
-to the contrived example that uses a bookmark for the `node_modules` directory, the run command is
-rather lengthy. Docker Compose to the rescue!
+The container would be able find `node_modules` on the local machine using this approach. Returning to the contrived example that uses a bookmark for the `node_modules` directory, the run command is rather lengthy. Docker Compose to the rescue!
 
 ```bash
-  $ touch docker-compose.yml
+  $ touch compose.yml
 ```
 
-The contents of `docker-compose.yml`:
+The contents of `compose.yml`:
 
 ```yml
-version: "3"
 services:
   web:
     build:
@@ -285,8 +255,8 @@ services:
     volumes:
       - /app/node_modules
       - .:/app
-# The context allows a reference to a different directory if the current directory is not the
-# working directory.
+# the context allows a reference to a different directory if the current directory is not the working directory.
+# the dockerfile must be explicitly defined since the conventional name is not used here
 ```
 
 To run tests, override the run command as demonstrated before:
@@ -295,17 +265,13 @@ To run tests, override the run command as demonstrated before:
   $ docker run -it <image id> npm run test
 ```
 
-Running the command as demonstrated above causes a small problem. A new container is created with
-its own filesystem, therefore, it is unable to detect any live changes to the source. There are
-two solutions, each with advantages and disadvantages. The first solution uses the `exec` command
-on the running running container:
+Running the command as demonstrated above causes a small problem. A new container is created with its own filesystem, therefore, it is unable to detect any live changes to the source. There are two solutions, each with advantages and disadvantages. The first solution uses the `exec` command on the running running container:
 
 ```bash
   $ docker exec -it <container id> npm run test
 ```
 
-The drawback on this approach requires a second step and keeping the container ID in mind. The
-second solution is to setup an additional service in `docker-compose.yml`:
+The drawback on this approach requires a second step and keeping the container ID in mind. The second solution is to setup an additional service in `compose.yml`:
 
 ```Dockerfile
 ...
@@ -322,19 +288,13 @@ second solution is to setup an additional service in `docker-compose.yml`:
     command: ["npm","run","test"]
 ```
 
-The test results update as expected and they are conveniently started in its own container, however,
-the terminal is not attached to the standard input, which does not allow for an interactive
-experience. Consider which option may be best for your current testing objectives.
+The test results update as expected and they are conveniently started in its own container, however, the terminal is not attached to the standard input, which does not allow for an interactive experience. Consider which option may be best for your current testing objectives.
 
-To this point in the exercise, we have setup a development and testing container. Now it is time to
-move to production. This will be accomplished in a multi-step build process. In this case it will
-occur in one `Dockerfile` that specifies two phases: **BUILD** and **RUN**
+To this point in the exercise, we have setup a development and testing container. Now it is time to move to production. This will be accomplished in a multi-step build process. In this case it will occur in one `Dockerfile` that specifies two phases: **BUILD** and **RUN**
 
-The _build phase_ will use `node:alpine` as a base image and install all dependencies in order to
-build the react app.
+The _build phase_ will use `node:alpine` as a base image and install all dependencies in order to build the react app.
 
-The _run phase_ will use `nginx` as a base image, copy over the results of the _build phase_ and
-start the Nginx server.
+The _run phase_ will use `nginx` as a base image, copy over the results of the _build phase_ and start the Nginx server.
 
 The multi phase `Dockerfile`:
 
@@ -363,5 +323,3 @@ We are now ready to build our production image and run it:
   $ docker build .
   $ docker run -p 8080:80 <image id>
 ```
-
-## CI/CD w/ AWS
