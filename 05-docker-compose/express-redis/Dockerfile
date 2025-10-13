@@ -1,5 +1,7 @@
-FROM alpine
+# Use official alpine image as a parent image
+FROM alpine:3.22
 
+# Set the working directory
 WORKDIR /usr/server
 
 RUN apk update

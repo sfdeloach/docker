@@ -1,0 +1,36 @@
+services:
+  database:
+    image: postgres:18.0-alpine3.22
+    restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    # volume to persist data
+    volumes:
+      # mapped volume:container path
+      - pgdata:/var/lib/postgresql/data
+      # init script to run on volume creation, read only
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    # defining POSTGRES_DB creates the DB on image first run
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      # host:container
+      - 8080:8080
+
+  api:
+    build: .
+    image: sfdeloach/fastapi:0.0-alpine3.22
+    restart: always
+    ports:
+      # host:container
+      - 8000:8000
+
+# named volumes are stored in /var/lib/docker/volumes/ on linux hosts
+volumes:
+  pgdata:

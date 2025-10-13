@@ -1,0 +1,16 @@
+# services define a resource that can be scaled and managed independently
+services:
+  # first container, this name becomes its discoverable hostname on the default network
+  redis-server:
+    # image available on docker hub
+    image: "redis:8.2-alpine"
+  # second container w/ host name 'node-app'
+  node-app:
+    # restart policies include "no" (default), always, on-failure, and unless-stopped
+    restart: always
+    # looks for the Dockerfile to build this image
+    build: .
+    # must explicitly define a port if external connection desired
+    ports:
+      # maps port 80 (HTTP) on the local machine to port 3000 in the container instance
+      - "80:3000"

@@ -11,7 +11,7 @@ Course notes from Stephen Grider's lectures on Udemy.com
   - [custom images](#custom-images)
   - [making real projects (Section 04)](#making-real-projects-section-04)
   - [docker compose - multiple containers (Section 05)](#docker-compose---multiple-containers-section-05)
-  - [creating a production grade workflow](#creating-a-production-grade-workflow)
+  - [creating a production grade workflow (Section 06)](#creating-a-production-grade-workflow-section-06)
   - [CI/CD w/ AWS](#cicd-w-aws)
 
 ## definitions
@@ -61,21 +61,12 @@ RUN apk add --update redis
 CMD ["redis-server"]
 ```
 
-Building the image (command executed from the same directory as `Dockerfile`):
+Building the image (command executed from the same directory as `Dockerfile`). Docker will cache dependencies for faster rebuilds. By convention, the tag is prefixed with your Docker ID:
 
 ```bash
   $ docker build .
+  $ docker build -t sfdeloach/redis:latest . # tag images with name and version
 ```
-
-> Docker will cache dependencies for faster rebuilds
-
-Build an image with repository info, name, and tag (version):
-
-```bash
-  $ docker build -t sfdeloach/redis:latest .
-```
-
-> By convention, the tag is prefixed with your Docker ID
 
 Another (nonsensical) example:
 
@@ -94,74 +85,72 @@ CMD ["ping","archlinux.org"]
 
 ## making real projects (Section 04)
 
-See `Dockerfile` in `04-simple server` for an example of how to build a nodeJS express server image using a Dockerfile. Take notice of the following:
+See `Dockerfile` in `04-simple-server` for an example of how to build a nodeJS express server image using a Dockerfile. Take notice of the following:
 
 - specify a tag with a base image for specificity
-- set a working directory inside your container
+- set a working directory inside your container, `/usr/src/app` is a conventional location for most containerized applications
 - copy build files from your local machine into your container
-- map network ports to your container
+- map network ports to your container during the `run` or `create` command
 - put thought into the order of commands in the Dockerfile to minimize rebuild times
+
+**NOTE:** While it is possible to place multiple services inside a container, however, this is not good practice. Each service should be placed in its own container so that there is greater flexibility when scaling.
 
 ## docker compose - multiple containers (Section 05)
 
-TODO: CLI becomes too clunky, docker compose is used in industry to manage complexity
+Up to this point, we have used the Docker CLI to work with containers. As projects grow, this becomes clunky. [Docker Compose](https://docs.docker.com/compose/) is used in industry to manage complexity. Docker Compose defines and runs multi-container applications and streamlines the development and deployment experience.
 
-It is possible to place multiple services inside a container, however, this is not good practice.
-Each service should be placed in its own container so that there is greater flexibility when
-scaling.
-
-Docker Compose sets up a single network for your application(s) by default, adding each container
-for a service to the default network. Containers on a single network can reach and discover every
-other container on the network. External connections must be explicitly defined.
+Docker Compose sets up a single network for your application(s) by default, adding each container for a service to the default network. Containers on a single network can reach and discover every other container on the network. External connections must be explicitly defined.
 
 A `docker-compose.yml` is used by Docker Compose to create containers.
 
 The contents of a simple `docker-compose.yml` file:
 
 ```yml
-version: "3.8"      # as of October 2025, 3.8 is latest version
-services:           # services can be thought of as containers
-  redis-server:     # first container, this name becomes its hostname
-    image: "redis"  # image available on docker hub
-  node-app:         # second container w/ host name 'node-app'
-    restart: always # restart policies include "no" (default), always, on-failure, and unless stopped
-    build: .        # looks for the Dockerfile to build this image
-    ports:          # must explicitly define a port if external connection desired
-      - "80:3000"   # maps port 80 on the local machine to port 3000 in the container instance
+# services define a resource that can be scaled and managed independently
+services:
+  # first container, this name becomes its discoverable hostname on the default network
+  redis-server:
+    # image available on docker hub
+    image: "redis:8.2-alpine"
+  # second container w/ host name 'node-app'
+  node-app:
+    # restart policies include "no" (default), always, on-failure, and unless-stopped
+    restart: always
+    # looks for the Dockerfile to build this image
+    build: .
+    # must explicitly define a port if external connection desired
+    ports:
+      # maps port 80 on the local machine to port 3000 in the container instance
+      - "80:3000"
 ```
 
 ```bash
-  $ docker-compose up build -p visits # build and run containers
-  $ docker-compose ps 
+  $ docker compose up    # create and start containers
+  $ docker-compose up -d # detached mode, run in background
+  $ docker compose ps    # list containers
+  $ docker compose stop  # stop services
+  $ docker compose start # start services
+  $ docker compose down  # stop and remove containers
 ```
 
-To see a list of running containers created by Docker Compose, be sure you are in the project
-folder and run:
+See two examples of multi-container applications in `05-docker-compose`:
+
+- A simple redis backend and express js api
+- A slightly more complicated postgres db, adminer db manager, and fastAPI api
+
+When working with volumes, some helpful commands include:
 
 ```bash
+ $ docker volume ls          # list volumes
+ $ docker volume prune       # remove unused local volumes
+ $ docker volume rm <volume> # remove one or more volumes
 ```
 
-To launch containers in the background:
-
-```bash
-  $ docker-compose up -d
-```
-
-To stop containers created by Docker Compose:
-
-```bash
-  $ docker-compose down
-```
-
-## creating a production grade workflow
+## creating a production grade workflow (Section 06)
 
 The workflow is a cycle:
 
-```
-       ┌<───────────────────<─────────────────────┐
-       │                                          │
-       └──>Development──>Testing──>Deployment───>─┘
-```
+![workflow cycle diagram](./images/01-workflow-cycle.png)
 
 In this example, found in `06-production-workflow`, the specific workflow will look like this:
 
