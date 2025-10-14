@@ -17,7 +17,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     # Override the default command to run tests
-    command: npm test -- --watchAll=false
     volumes:
       - /usr/src/app/node_modules
       - .:/usr/src/app
+    command: ["npm", "run", "test"]

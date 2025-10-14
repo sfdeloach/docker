@@ -13,6 +13,8 @@ Course notes from Stephen Grider's lectures on Udemy.com
   - [docker compose - multiple containers (Section 05)](#docker-compose---multiple-containers-section-05)
   - [creating a production grade workflow (Section 06)](#creating-a-production-grade-workflow-section-06)
     - [course material](#course-material)
+      - [tests](#tests)
+      - [build and run](#build-and-run)
     - [another example](#another-example)
 
 ## definitions
@@ -257,6 +259,8 @@ services:
       - .:/usr/src/app
 ```
 
+#### tests
+
 To run tests, override the run command as demonstrated before:
 
 ```bash
@@ -272,20 +276,24 @@ Running the command as demonstrated above causes a small problem. A new containe
 The drawback on this approach requires a second step and keeping the container ID in mind. The second solution is to setup an additional service in `compose.yml`:
 
 ```yml
----
-(append this to the bottom of the existing file)
----
+...
+(append the service 'tests' to existing file...)
+...
+
 tests:
-  build:
-    context: .
-    dockerfile: Dockerfile.dev
-  volumes:
-    - /app/node_modules
-    - .:/app
-  command: ["npm", "run", "test"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    # Override the default command to run tests
+    volumes:
+      - /usr/src/app/node_modules
+      - .:/usr/src/app
+    command: ["npm", "run", "test"]
 ```
 
 The test results update as expected and they are conveniently started in its own container, however, the terminal is not attached to the standard input, which does not allow for an interactive experience. Consider which option may be best for your current testing objectives.
+
+#### build and run
 
 To this point in the exercise, we have setup a development and testing container. Now it is time to move to production. This will be accomplished in a multi-step build process. In this case it will occur in one `Dockerfile` that specifies two phases: **BUILD** and **RUN**
 
