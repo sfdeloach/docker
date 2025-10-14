@@ -124,12 +124,13 @@ services:
 ```
 
 ```bash
-  $ docker compose up    # create and start containers
-  $ docker-compose up -d # detached mode, run in background
-  $ docker compose ps    # list containers
-  $ docker compose stop  # stop services
-  $ docker compose start # start services
-  $ docker compose down  # stop and remove containers
+  $ docker compose up         # create and start containers
+  $ docker-compose up -d      # detached mode, run in background
+  $ docker-compose up --build # build images before starting
+  $ docker compose ps         # list containers
+  $ docker compose stop       # stop services
+  $ docker compose start      # start services
+  $ docker compose down       # stop and remove containers
 ```
 
 See two examples of multi-container applications in `05-docker-compose`:
@@ -248,32 +249,34 @@ The contents of `compose.yml`:
 services:
   web:
     build:
+      # sets the directory to the current folder
       context: .
+      # unconventional name, must be explicitly defined
       dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     volumes:
+      # bookmark, look inside the container, no ":" is used
       - /app/node_modules
+      # mapping local directory to the container's /app directory
       - .:/app
-# the context allows a reference to a different directory if the current directory is not the working directory.
-# the dockerfile must be explicitly defined since the conventional name is not used here
 ```
 
 To run tests, override the run command as demonstrated before:
 
 ```bash
-  $ docker run -it <image id> npm run test
+  $ docker run -it <image> npm run test
 ```
 
 Running the command as demonstrated above causes a small problem. A new container is created with its own filesystem, therefore, it is unable to detect any live changes to the source. There are two solutions, each with advantages and disadvantages. The first solution uses the `exec` command on the running running container:
 
 ```bash
-  $ docker exec -it <container id> npm run test
+  $ docker exec -it <container> npm run test
 ```
 
 The drawback on this approach requires a second step and keeping the container ID in mind. The second solution is to setup an additional service in `compose.yml`:
 
-```Dockerfile
+```yml
 ...
   (append this to the bottom of the existing file)
 ...
