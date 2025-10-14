@@ -1,0 +1,23 @@
+services:
+  web:
+    build:
+      # sets the directory to the current folder
+      context: .
+      # unconventional name, must be explicitly defined
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # bookmark, look inside the container, no ":" is used
+      - /usr/src/app/node_modules
+      # mapping local directory to the container's /app directory
+      - .:/usr/src/app
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    # Override the default command to run tests
+    command: npm test -- --watchAll=false
+    volumes:
+      - /usr/src/app/node_modules
+      - .:/usr/src/app

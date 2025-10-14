@@ -1,0 +1,15 @@
+## Dockerfile.dev
+FROM node:lts-alpine3.22
+
+# Set working directory
+WORKDIR /usr/src/app
+
+# Install app dependencies
+COPY package*.json ./
+RUN npm install
+
+# Bundle app source
+COPY . .
+
+# Start development server
+CMD ["npm", "start"]

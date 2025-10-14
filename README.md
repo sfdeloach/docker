@@ -12,6 +12,8 @@ Course notes from Stephen Grider's lectures on Udemy.com
   - [making real projects (Section 04)](#making-real-projects-section-04)
   - [docker compose - multiple containers (Section 05)](#docker-compose---multiple-containers-section-05)
   - [creating a production grade workflow (Section 06)](#creating-a-production-grade-workflow-section-06)
+    - [course material](#course-material)
+    - [another example](#another-example)
 
 ## definitions
 
@@ -148,6 +150,8 @@ When working with volumes, some helpful commands include:
 
 ## creating a production grade workflow (Section 06)
 
+### course material
+
 The workflow is a cycle:
 
 ![workflow cycle diagram](./images/01-workflow-cycle.png)
@@ -156,28 +160,17 @@ In this section, the workflow will look like this:
 
 ![flow specifics](./images/02-flow-specifics.png)
 
-**Thoughts on rewriting this section from here:**
-
-1. archive existing
-2. setup react w/ vite
-3. two containers, one for dev, one for build
-
-**End of thoughts**
-
-Create a new react app, run the out of the box test, and build the application to make sure the
-application works:
+Create a new react app, run the out of the box test, and build the application to make sure the application works:
 
 ```bash
-  $ create-react-app frontend
-  $ cd frontend
+  $ create-react-app my-app
+  $ cd my-app
   $ npm start
   $ npm run test
   $ npm run build
 ```
 
-Note that the preceding commands created the `node_modules` directory, which will contain a
-significant number of directories and files. For the purpose of demonstrating docker volumes in a
-later step, remove the `node_modules` directory:
+Note that the preceding commands created the `node_modules` directory, which will contain a significant number of directories and files. For the purpose of demonstrating docker volumes in a later step, remove the `node_modules` directory:
 
 ```bash
   $ rm -rf node_modules
@@ -192,52 +185,54 @@ Remaining in the `frontend` directory, create a development Dockerfile:
 This file will use the `npm run start` command during development. Later we will create the conventional `Dockerfile` that will use the `npm run build` command for production. The contents of the `Dockerfile.dev` will provide the setup of our development container:
 
 ```Dockerfile
-(Dockerfile.dev)
-FROM node:alpine
+## Dockerfile.dev
+FROM node:lts-alpine3.22
 
-WORKDIR '/app'
+# Set working directory
+WORKDIR /usr/src/app
 
-COPY package.json .
-
+# Install app dependencies
+COPY package*.json ./
 RUN npm install
 
+# Bundle app source
 COPY . .
 
-CMD ["npm","run","start"]
+# Start development server
+CMD ["npm", "start"]
 ```
 
-Running `docker build .` will look for the default `Dockerfile`, which does not exist at this time.
-The build file must be explicitly defined using the `-f` flag:
+Running `docker build .` will look for the default `Dockerfile`, which does not exist at this time. The build file must be explicitly defined using the `-f` flag:
 
 ```bash
-  $ docker build -t sfdeloach/react-dev -f Dockerfile.dev .
+  $ docker build -t sfdeloach/react-dev:latest -f Dockerfile.dev .
 ```
 
-Options added to the run command allow bookmarks and mappings to a volume. This will allow the react development server the ability to detect changes made locally. Notice that both bookmarks and mappings use the same `-v` flag. The only difference is the colon, which is a similar syntax used earlier to map a container's port to the local machine's port:
+Options added to the run command allow bookmarks and mappings to a volume. This will allow the react development server the ability to detect changes made locally. Notice that both bookmarks and mappings use the same `-v` flag. The only difference is the colon, which is a similar syntax used earlier to map a local port to a container's port:
 
 ```bash
-  $ docker run -p 3000:3000 -v /app/node_modules -v $(pwd):/app <image id>
-  $ ######################## ^ bookmark ######### ^ mapping ##############
+  $ docker run -p 3000:3000 -v usr/src/app/node_modules -v $(pwd):/usr/src/app <image>
+  $ ######################## ^ bookmark ################ ^ mapping ###################
 ```
 
-This example is purposefully designed to demonstrate the use of volume bookmarks and volume maps. In this example, we deleted the `node_modules` directory locally, which contained scripts needed to start our development environment. Mapping the contents of our local working directory will not provide it since it no longer exists. However, recall that the command `npm install` was run on our container during the build. This installed a copy of `node_modules` in the container. The bookmark tells the container to look inside its own file system for any references to the `node_modules` directory. This bookmark is intentionally place before the mapping.
+This example is purposefully designed to demonstrate the use of bookmarks and volumes. In this example, we deleted the `node_modules` directory locally, which contained scripts needed to start our development environment. Mapping the contents of our local working directory will not provide it since it no longer exists. However, recall that the command `npm install` was run on our container during the build. This installed a copy of `node_modules` in the container. The bookmark tells the container to look inside its own file system for any references to the `node_modules` directory. This bookmark is intentionally place before the mapping.
 
 As an aside, a simpler development container could be created. Only the `package.json` file would be needed to run the initial npm script and only a mapping to the working directory is needed if `node_modules` was not removed:
 
 ```Dockerfile
-FROM node:alpine
-WORKDIR '/app'
+FROM node:lts-alpine3.22
+WORKDIR '/usr/src/app'
 COPY package.json .
-CMD ["npm","run","start"]
+CMD ["npm", "start"]
 ```
 
 Build the image as shown above, then run with only the mapping:
 
 ```bash
-  $ docker run -p 3000:3000 -v $(pwd):/app <image id>
+  $ docker run -p 3000:3000 -v $(pwd):/usr/src/app <image>
 ```
 
-The container would be able find `node_modules` on the local machine using this approach. Returning to the contrived example that uses a bookmark for the `node_modules` directory, the run command is rather lengthy. Docker Compose to the rescue!
+The container would be able find `node_modules` on the local machine using this approach. Returning to the contrived example that uses a bookmark for the `node_modules` directory, the run command is rather lengthy. [Docker Compose](https://docs.docker.com/compose) to the rescue!
 
 ```bash
   $ touch compose.yml
@@ -257,9 +252,9 @@ services:
       - "3000:3000"
     volumes:
       # bookmark, look inside the container, no ":" is used
-      - /app/node_modules
+      - /usr/src/app/node_modules
       # mapping local directory to the container's /app directory
-      - .:/app
+      - .:/usr/src/app
 ```
 
 To run tests, override the run command as demonstrated before:
@@ -277,52 +272,73 @@ Running the command as demonstrated above causes a small problem. A new containe
 The drawback on this approach requires a second step and keeping the container ID in mind. The second solution is to setup an additional service in `compose.yml`:
 
 ```yml
-...
-  (append this to the bottom of the existing file)
-...
-
-  tests:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    volumes:
-      - /app/node_modules
-      - .:/app
-    command: ["npm","run","test"]
+---
+(append this to the bottom of the existing file)
+---
+tests:
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  volumes:
+    - /app/node_modules
+    - .:/app
+  command: ["npm", "run", "test"]
 ```
 
 The test results update as expected and they are conveniently started in its own container, however, the terminal is not attached to the standard input, which does not allow for an interactive experience. Consider which option may be best for your current testing objectives.
 
 To this point in the exercise, we have setup a development and testing container. Now it is time to move to production. This will be accomplished in a multi-step build process. In this case it will occur in one `Dockerfile` that specifies two phases: **BUILD** and **RUN**
 
-The _build phase_ will use `node:alpine` as a base image and install all dependencies in order to build the react app.
+The _build phase_ will use `node:lts-alpine3.22` as a base image and install all dependencies in order to build the react app.
 
 The _run phase_ will use `nginx` as a base image, copy over the results of the _build phase_ and start the Nginx server.
 
 The multi phase `Dockerfile`:
 
 ```Dockerfile
-FROM node:alpine as builder
-WORKDIR '/app'
-COPY package.json .
+# Multi-stage Dockerfile for Production
+FROM node:lts-alpine3.22 AS build
+
+# Set working directory
+WORKDIR /usr/src/app
+
+# Install app dependencies
+COPY package*.json ./
 RUN npm install
+
+# Bundle app source
 COPY . .
+
+# Build the app
 RUN npm run build
 
-FROM nginx
-COPY --from=builder /app/build /usr/share/nginx/html
+# Produce a lean production image
+FROM nginx:1.29.2-alpine
+
+# Copy built app from the build stage
+COPY --from=build /usr/src/app/build /usr/share/nginx/html
 ```
 
 Note the following:
 
 - it is not necessary to install all the dev dependencies in our production container
 - in fact, node is not needed at all in production, we are only serving static content
-- build stages can be named to increase readability: `FROM node:alpine as builder`
+- build stages can be named to increase readability: `FROM node:lts-alpine3.22 AS builder`
 - no `RUN` command is necessary for nginx, the server is enabled by default
 
 We are now ready to build our production image and run it:
 
 ```bash
-  $ docker build .
-  $ docker run -p 8080:80 <image id>
+  $ docker build -t sfdeloach/nginx-server:latest .
+  $ docker run -p 8080:80 <image>
 ```
+
+### another example
+
+The following is an example that builds on the course's example. Concepts include:
+
+1. Using [Vite](vite.dev) to build a simple frontend.
+2. Setting up a development container that provides live updates.
+3. Setting up a testing container from the development image for live updates.
+4. Using volumes efficiently between local and container environments.
+5. Setting up a production container via multi-step builds using Nginx server
