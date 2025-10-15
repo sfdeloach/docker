@@ -39,7 +39,7 @@ Course notes from Stephen Grider's lectures on Udemy.com
   $ docker start -a <container>       # start and attach to a stopped container
   $ docker run -it <image> sh         # create, start, and attach w/ sh console shell
   $ docker run -it ubuntu bash        # create, start, attach to a ubuntu bash console shell
-  $ docker exec -it <container> <cmd> # run and attach to a running container with command
+  $ docker exec -it <container> <cmd> # attach to a running container with command
   $ docker exec -it <container> bash  # example command prompt in a running container
   $ docker stop <container>           # stop container via SIGTERM (preferred)
   $ docker kill <container>           # kill container via SIGKILL

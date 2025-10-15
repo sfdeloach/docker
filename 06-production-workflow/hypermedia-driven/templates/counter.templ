@@ -1,0 +1,8 @@
+package main
+
+templ Counter(count int) {
+	<div id="counter">
+		<p>Count: { fmt.Sprintf("%d", count) }</p>
+		<button hx-get={ fmt.Sprintf("/increment?count=%d", count) } hx-target="#counter" onclick="showAlert()">Increment</button>
+	</div>
+}
