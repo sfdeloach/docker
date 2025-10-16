@@ -1,4 +1,4 @@
-## Dockerfile.dev
+# Dockerfile.dev
 FROM node:lts-alpine3.22
 
 # Set working directory
