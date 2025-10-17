@@ -1,0 +1,19 @@
+name: Dockerfile Tests
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  dockerfile-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -f Dockerfile.tests -t sfdeloach/github-actions-nodejs .
+
+      - name: Run tests in Docker container
+        run: docker run --rm sfdeloach/github-actions-nodejs
