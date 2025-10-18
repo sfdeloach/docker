@@ -217,7 +217,7 @@ Options added to the run command allow bookmarks and mappings to a volume. This 
   $ ######################## ^ bookmark ################ ^ mapping ###################
 ```
 
-This example is purposefully designed to demonstrate the use of bookmarks and volumes. In this example, we deleted the `node_modules` directory locally, which contained scripts needed to start our development environment. Mapping the contents of our local working directory will not provide it since it no longer exists. However, recall that the command `npm install` was run on our container during the build. This installed a copy of `node_modules` in the container. The bookmark tells the container to look inside its own file system for any references to the `node_modules` directory. This bookmark is intentionally place before the mapping.
+This example is purposefully designed to demonstrate the use of bookmarks and volumes. In this example, we deleted the `node_modules` directory locally, which contained scripts needed to start our development environment. Mapping the contents of our local working directory will not provide it since it no longer exists. However, recall that the command `npm install` was run inside our container during the build. This installed a copy of `node_modules` in the container. The bookmark tells the container to look inside its own file system for any references to the `node_modules` directory. This bookmark is intentionally place before the mapping.
 
 As an aside, a simpler development container could be created. Only the `package.json` file would be needed to run the initial npm script and only a mapping to the working directory is needed if `node_modules` was not removed:
 
@@ -234,7 +234,7 @@ Build the image as shown above, then run with only the mapping:
   $ docker run -p 3000:3000 -v $(pwd):/usr/src/app <image>
 ```
 
-The container would be able find `node_modules` on the local machine using this approach. Returning to the contrived example that uses a bookmark for the `node_modules` directory, the run command is rather lengthy. [Docker Compose](https://docs.docker.com/compose) to the rescue!
+The container would be able find `node_modules` on the local machine using this approach. For a development container, it may be the better practice to rely on dependencies installed inside the container. This may be especially true for a Python virtual environment. Returning to the example above that uses a bookmark for the `node_modules` directory, the run command is rather lengthy. [Docker Compose](https://docs.docker.com/compose) to the rescue!
 
 ```bash
   $ touch compose.yml
@@ -343,10 +343,18 @@ We are now ready to build our production image and run it:
 
 ### another example
 
-The following is an example that builds on the course's example. Concepts include:
+The following is an example that builds on this course's section. Concepts include:
 
-1. Using [Vite](vite.dev) to build a simple frontend.
-2. Setting up a development container that provides live updates.
-3. Setting up a testing container from the development image for live updates.
-4. Using volumes efficiently between local and container environments.
-5. Setting up a production container via multi-step builds using Nginx server
+1. Using [Vite](vite.dev) to build a simple Vue frontend with tests.
+2. Setup a git `develop` branch along with the `main` branch.
+   1. Only `develop` branches are committed locally, all updates to `main` are made through a pull request.
+3. Setting up a development container that provides live updates (map src folder to container).
+   1. Using volumes and bookmarks across local and container environments.
+   2. Delete the local copy of `node_modules` and rely on dependencies inside the container.
+4. Setting up a testing container from the development image for live updates.
+5. Setting up a `docker compose` file, using both of the dev and testing containers built earlier for local development.
+6. Using GitHub actions for testing
+   1. Is it acceptable to only run tests on the `develop` branch when pushed to the repo?
+   2. Should tests be run again when branches are merged to `main`?
+7. Setting up a production container via multi-step builds using Nginx server
+8. Extending GitHub actions for testing and deployment to AWS Elastic Beanstalk
