@@ -152,7 +152,7 @@ When working with volumes, some helpful commands include:
 
 ## creating a production grade workflow (Section 06)
 
-### course material
+### course example
 
 The workflow is a cycle:
 
@@ -341,20 +341,31 @@ We are now ready to build our production image and run it:
   $ docker run -p 8080:80 <image>
 ```
 
-### another example
+## Section 7: Continuous Integration and Deployment with AWS
 
-The following is an example that builds on this course's section. Concepts include:
+The course uses Travis CI for automated workflows. The following uses GitHub Actions instead.
 
-1. Using [Vite](vite.dev) to build a simple Vue frontend with tests.
-2. Setup a git `develop` branch along with the `main` branch.
-   1. Only `develop` branches are committed locally, all updates to `main` are made through a pull request.
+### Vite (vanilla js) -> GitHub testing and deployment -> AWS Elastic Beanstalk
+
+See GitHub repository sfdeloach/my-website for the code:
+
+1. Using [Vite](https://vite.dev/) to build a simple Vue frontend with tests.
+2. Setup a git develop branch along with the main branch.
+   - Only develop branches are committed locally, all updates to main are made through a pull request.
 3. Setting up a development container that provides live updates (map src folder to container).
-   1. Using volumes and bookmarks across local and container environments.
-   2. Delete the local copy of `node_modules` and rely on dependencies inside the container.
-4. Setting up a testing container from the development image for live updates.
-5. Setting up a `docker compose` file, using both of the dev and testing containers built earlier for local development.
-6. Using GitHub actions for testing
-   1. Is it acceptable to only run tests on the `develop` branch when pushed to the repo?
-   2. Should tests be run again when branches are merged to `main`?
-7. Setting up a production container via multi-step builds using Nginx server
-8. Extending GitHub actions for testing and deployment to AWS Elastic Beanstalk
+   - Remember to use the `--host` flag for the vite development server to be exposed outside the container.
+   - Using volumes and bookmarks across local and container environments.
+   - Delete the contents of the local node_modules directory (directory still exists, but is empty) and rely on dependencies inside the container.
+4. Setting up a docker compose file, using both of the dev and testing containers built earlier for local development.
+   - Setting up a testing container using the same image for development with an overriding command.
+5. Using [GitHub Actions](https://docs.github.com/en/actions), run unit tests when new code is pushed to the repository.
+   - see `/.github/workflows/frontend-unit-tests.yml`
+6. Setting up a production container `Dockerfile` via multi-stage builds using Nginx server.
+7. Extending GitHub actions for deployment to AWS Elastic Beanstalk.
+   - see [beanstalk-deploy](https://github.com/marketplace/actions/beanstalk-deploy)
+   - see `/.github/workflows/deploy-aws-eb.yml`
+   - adding repository secrets for AWS IAM-created user:
+     - `AWS_ACCESS_KEY_ID`
+     - `AWS_SECRET_ACCESS_KEY`
+     - `AWS_S3_BUCKET`
+
