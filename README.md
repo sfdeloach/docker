@@ -6,23 +6,31 @@ Course notes from Stephen Grider's lectures on Udemy.com
 
 - [Docker and Kubernetes: The Complete Guide](#docker-and-kubernetes-the-complete-guide)
   - [contents](#contents)
-  - [definitions](#definitions)
-  - [basics with the CLI](#basics-with-the-cli)
-  - [custom images](#custom-images)
-  - [making real projects (Section 04)](#making-real-projects-section-04)
-  - [docker compose - multiple containers (Section 05)](#docker-compose---multiple-containers-section-05)
-  - [creating a production grade workflow (Section 06)](#creating-a-production-grade-workflow-section-06)
-    - [course material](#course-material)
+  - [Section 1: Dive Into Docker](#section-1-dive-into-docker)
+  - [Section 2: Manipulating Containers with the Docker Client](#section-2-manipulating-containers-with-the-docker-client)
+  - [Section 3: Building Custom Images Through Docker Server](#section-3-building-custom-images-through-docker-server)
+  - [Section 4: Making Real Projects](#section-4-making-real-projects)
+  - [Section 5: Docker Compose - Multiple Containers](#section-5-docker-compose---multiple-containers)
+  - [Section 6: Creating a Production Grade Workflow](#section-6-creating-a-production-grade-workflow)
+    - [course example](#course-example)
       - [tests](#tests)
       - [build and run](#build-and-run)
-    - [another example](#another-example)
+  - [Section 7: Continuous Integration and Deployment with AWS](#section-7-continuous-integration-and-deployment-with-aws)
+    - [Vite (vanilla js) -\> GitHub testing and deployment -\> AWS Elastic Beanstalk](#vite-vanilla-js---github-testing-and-deployment---aws-elastic-beanstalk)
+  - [Section 8: Building a Multi-Container Application](#section-8-building-a-multi-container-application)
+    - [fibonacci overkill app - `sfdeloach/complex-app`](#fibonacci-overkill-app---sfdeloachcomplex-app)
+      - [development flow](#development-flow)
+      - [application architecture](#application-architecture)
+      - [application logic](#application-logic)
+      - [Service 1: NodeJS Worker `worker`](#service-1-nodejs-worker-worker)
+      - [Service 2: Express API `server`](#service-2-express-api-server)
 
-## definitions
+## Section 1: Dive Into Docker
 
 - **image:** A read-only template that contains all the necessary components—such as application code, runtime, system tools, libraries, and settings—to run a software application within a container. Think of it as a cookie cutter.
 - **container:** A lightweight, standalone, executable package that includes everything needed to run an application, such as the code, runtime, system tools, libraries, and configuration files. An instance of an image. Think cookie.
 
-## basics with the CLI
+## Section 2: Manipulating Containers with the Docker Client
 
 ```bash
   $ docker run hello-world            # verify installation
@@ -49,7 +57,7 @@ Course notes from Stephen Grider's lectures on Udemy.com
   $ docker images                     # same as `docker image ls`
 ```
 
-## custom images
+## Section 3: Building Custom Images Through Docker Server
 
 Custom images are built with a `Dockerfile`:
 
@@ -86,7 +94,7 @@ RUN dnf install -y gcc
 CMD ["ping","archlinux.org"]
 ```
 
-## making real projects (Section 04)
+## Section 4: Making Real Projects
 
 See `Dockerfile` in `04-simple-server` for an example of how to build a nodeJS express server image using a Dockerfile. Take notice of the following:
 
@@ -98,7 +106,7 @@ See `Dockerfile` in `04-simple-server` for an example of how to build a nodeJS e
 
 **NOTE:** While it is possible to place multiple services inside a container, however, this is not good practice. Each service should be placed in its own container so that there is greater flexibility when scaling.
 
-## docker compose - multiple containers (Section 05)
+## Section 5: Docker Compose - Multiple Containers
 
 Up to this point, we have used the Docker CLI to work with containers. As projects grow, this becomes clunky. [Docker Compose](https://docs.docker.com/compose/) is used in industry to manage complexity. Docker Compose defines and runs multi-container applications and streamlines the development and deployment experience.
 
@@ -150,7 +158,7 @@ When working with volumes, some helpful commands include:
  $ docker volume rm <volume> # remove one or more volumes
 ```
 
-## creating a production grade workflow (Section 06)
+## Section 6: Creating a Production Grade Workflow
 
 ### course example
 
@@ -276,19 +284,18 @@ Running the command as demonstrated above causes a small problem. A new containe
 The drawback on this approach requires a second step and keeping the container ID in mind. The second solution is to setup an additional service in `compose.yml`:
 
 ```yml
-...
+---
 (append the service 'tests' to existing file...)
-...
-
+---
 tests:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    # Override the default command to run tests
-    volumes:
-      - /usr/src/app/node_modules
-      - .:/usr/src/app
-    command: ["npm", "run", "test"]
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  # Override the default command to run tests
+  volumes:
+    - /usr/src/app/node_modules
+    - .:/usr/src/app
+  command: ["npm", "run", "test"]
 ```
 
 The test results update as expected and they are conveniently started in its own container, however, the terminal is not attached to the standard input, which does not allow for an interactive experience. Consider which option may be best for your current testing objectives.
@@ -347,7 +354,7 @@ The course uses Travis CI for automated workflows. The following uses GitHub Act
 
 ### Vite (vanilla js) -> GitHub testing and deployment -> AWS Elastic Beanstalk
 
-See GitHub repository sfdeloach/my-website for the code:
+See GitHub repository `sfdeloach/my-website` for the code:
 
 1. Using [Vite](https://vite.dev/) to build a simple Vue frontend with tests.
 2. Setup a git develop branch along with the main branch.
@@ -369,3 +376,46 @@ See GitHub repository sfdeloach/my-website for the code:
      - `AWS_SECRET_ACCESS_KEY`
      - `AWS_S3_BUCKET`
 
+## Section 8: Building a Multi-Container Application
+
+### fibonacci overkill app - `sfdeloach/complex-app`
+
+An "over the top" web application for calculating Fibonacci numbers, but for the purpose of demonstrating how to build a more complex multi-container application.
+
+#### development flow
+
+- User enters a number
+- Nginx server determines if the request is for the UI or the API
+- If for the UI, Nginx serves the UI
+- If for the API, route to the Express Server, then
+  - Store number in Postgres database
+  - Lookup number in Redis for previous calculation
+  - If already calculated, return the cached result
+  - Otherwise, send request to a Nodejs worker to calculate result and save the result when it returns
+  - Update UI with data from Postgres ("values I have seen") and Redis ("calculated values")
+
+#### application architecture
+
+![app arch](./images/03-app-arch.png)
+
+#### application logic
+
+![app logic](./images/04-app-flow.png)
+
+#### Service 1: NodeJS Worker `worker`
+
+1. Dependencies: [nodemon](https://www.npmjs.com/package/nodemon), [redis](https://www.npmjs.com/package/redis) client
+2. Scripts: start and dev
+3. Keys: kept in a separate file, read from env vars
+4. Recursive fibonacci function (purposefully slow)
+5. Subscribe on insert events, calculate value, set result in redis
+
+#### Service 2: Express API `server`
+
+1. Dependencies: [express](https://www.npmjs.com/package/express), [pg](https://www.npmjs.com/package/pg), [redis](https://www.npmjs.com/package/redis), [cors](https://www.npmjs.com/package/cors), [nodemon](https://www.npmjs.com/package/nodemon), [body-parser](https://www.npmjs.com/package/body-parser)
+2. Scripts: start and dev
+3. Keys: kept in a separate file, read from env vars
+   1. Redis: host and port
+   2. Pg: user, host, database, password, port
+4. Use pool connections for postgres
+5. Create initial table of values in postgres if it does not exist
