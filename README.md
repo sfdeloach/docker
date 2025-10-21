@@ -18,9 +18,9 @@ Course notes from Stephen Grider's lectures on Udemy.com
   - [Section 7: Continuous Integration and Deployment with AWS](#section-7-continuous-integration-and-deployment-with-aws)
     - [Vite (vanilla js) -\> GitHub testing and deployment -\> AWS Elastic Beanstalk](#vite-vanilla-js---github-testing-and-deployment---aws-elastic-beanstalk)
   - [Section 8: Building a Multi-Container Application](#section-8-building-a-multi-container-application)
-    - [fibonacci overkill app - `sfdeloach/complex-app`](#fibonacci-overkill-app---sfdeloachcomplex-app)
+    - [course example - "Fibonacci Overkill"](#course-example---fibonacci-overkill)
       - [development flow](#development-flow)
-      - [application architecture](#application-architecture)
+      - [development architecture](#development-architecture)
       - [application logic](#application-logic)
       - [Service 1: NodeJS Worker `worker`](#service-1-nodejs-worker-worker)
       - [Service 2: Express API `server`](#service-2-express-api-server)
@@ -378,9 +378,9 @@ See GitHub repository `sfdeloach/my-website` for the code:
 
 ## Section 8: Building a Multi-Container Application
 
-### fibonacci overkill app - `sfdeloach/complex-app`
+### course example - "Fibonacci Overkill"
 
-An "over the top" web application for calculating Fibonacci numbers, but for the purpose of demonstrating how to build a more complex multi-container application.
+An "over the top" web application with more services than it requires for calculating Fibonacci numbers. The purpose is to demonstrate how to build a more complex multi-container application. Project repo located at `sfdeloach/fibi-overkill`.
 
 #### development flow
 
@@ -394,7 +394,7 @@ An "over the top" web application for calculating Fibonacci numbers, but for the
   - Otherwise, send request to a Nodejs worker to calculate result and save the result when it returns
   - Update UI with data from Postgres ("values I have seen") and Redis ("calculated values")
 
-#### application architecture
+#### development architecture
 
 ![app arch](./images/03-app-arch.png)
 
@@ -409,6 +409,7 @@ An "over the top" web application for calculating Fibonacci numbers, but for the
 3. Keys: kept in a separate file, read from env vars
 4. Recursive fibonacci function (purposefully slow)
 5. Subscribe on insert events, calculate value, set result in redis
+6. Setup redis client, take note of the need of a duplicate client for [subscribing](https://github.com/redis/node-redis/blob/master/docs/pub-sub.md)
 
 #### Service 2: Express API `server`
 
@@ -418,4 +419,11 @@ An "over the top" web application for calculating Fibonacci numbers, but for the
    1. Redis: host and port
    2. Pg: user, host, database, password, port
 4. Use pool connections for postgres
-5. Create initial table of values in postgres if it does not exist
+5. Create initial table of values in database if it does not exist
+6. Setup redis client, same as the `worker` service above, a duplicate client is needed to [publish](https://github.com/redis/node-redis/blob/master/docs/pub-sub.md).
+7. Define at least four routes:
+   1. Test route that simply verifies the API is receiving requests
+   2. All values from postgres
+   3. All values from redis
+   4. On user submission of a number, validate input, update value log in postgres, return answer if it exists, if not, send (publish) the task to the `worker` and return a busy signal
+
