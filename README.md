@@ -1,6 +1,6 @@
 # Docker and Kubernetes: The Complete Guide
 
-Course notes from Stephen Grider's lectures on Udemy.com
+Course notes from [Docker and Kubernetes: The Complete Guide](https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/?couponCode=MT251022G2) by Stephen Grider.
 
 ## contents
 
@@ -24,6 +24,8 @@ Course notes from Stephen Grider's lectures on Udemy.com
       - [application logic](#application-logic)
       - [Service 1: NodeJS Worker `worker`](#service-1-nodejs-worker-worker)
       - [Service 2: Express API `server`](#service-2-express-api-server)
+      - [Service 3: React Frontend `client`](#service-3-react-frontend-client)
+      - [Dockerize the Services](#dockerize-the-services)
 
 ## Section 1: Dive Into Docker
 
@@ -427,3 +429,18 @@ An "over the top" web application with more services than it requires for calcul
    3. All values from redis
    4. On user submission of a number, validate input, update value log in postgres, return answer if it exists, if not, send (publish) the task to the `worker` and return a busy signal
 
+#### Service 3: React Frontend `client`
+
+1. Main page includes:
+   1. Form that accepts a single number/index
+   2. Display numbers that have been entered from postgres
+   3. List of indices and their values on redis
+2. Main page has a header with two routes
+   1. The main page as described above
+   2. A sample page demonstrating HTML5 page state is handled properly by the nginx server
+
+#### Dockerize the Services
+
+- create `Dockerfile`s for each of the three services
+- copy `package*.json` , npm install, copy everything else, setup volumes to share data
+- read [Docker best practices with Node.js](https://medium.com/@nodepractices/docker-best-practices-with-node-js-e044b78d8f67)
