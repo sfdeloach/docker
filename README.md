@@ -410,17 +410,24 @@ architecture-beta
     service react(server)[React Server] in dev
     service cache(database)[Redis] in dev
     service rdbms(database)[Postgres] in dev
-    service worker(disk)[Woker] in dev
+    service worker(disk)[Worker] in dev
+
+    junction node_topleft in dev
+    junction node_botleft in dev
+    junction node_topright in dev
+    junction node_botright in dev
 
     frontend:R <--> L:nginx
-    nginx:T <--> B:react
-    nginx:R <--> L:express
-    express:T <--> B:cache
-    express:B <--> T:rdbms
-    cache:R <--> L:worker
+    nginx:R <-- L:node_botleft
+    react:L <-- R:node_topleft
+    node_topleft:B -- T:node_botleft
+    express:L <-- R:node_botleft
+    express:R <-- L:node_topright
+    cache:L <-- R:node_topright
+    node_topright:B -- T:node_botright
+    rdbms:L <-- R:node_botright
+    worker:B <--> T:cache
 ```
-
-![app arch](./images/03-app-arch.png)
 
 #### application logic
 
