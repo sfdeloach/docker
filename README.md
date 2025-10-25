@@ -26,6 +26,7 @@ Course notes from [Docker and Kubernetes: The Complete Guide](https://www.udemy.
       - [Service 2: Express API `server`](#service-2-express-api-server)
       - [Service 3: React Frontend `client`](#service-3-react-frontend-client)
       - [Dockerize the Services](#dockerize-the-services)
+      - [Docker Compose](#docker-compose)
 
 ## Section 1: Dive Into Docker
 
@@ -398,6 +399,21 @@ An "over the top" web application with more services than it requires for calcul
 
 #### development architecture
 
+```mermaid
+architecture-beta
+    group frontend[Frontend]
+        service webapp[Web App]
+    group backend[Backend]
+        service api[API Service]
+        service db[Database]
+    group external[External]
+        service cloud[Cloud Storage]
+
+    webapp -> api
+    api -> db
+    api -> cloud
+```
+
 ![app arch](./images/03-app-arch.png)
 
 #### application logic
@@ -444,3 +460,10 @@ An "over the top" web application with more services than it requires for calcul
 - create `Dockerfile`s for each of the three services
 - copy `package*.json` , npm install, copy everything else, setup volumes to share data
 - read [Docker best practices with Node.js](https://medium.com/@nodepractices/docker-best-practices-with-node-js-e044b78d8f67)
+
+#### Docker Compose
+
+- Define services. Some do not require a custom image as our first three services did.
+- Postgres
+- Redis
+- Nginx
