@@ -476,7 +476,12 @@ architecture-beta
 
 #### Docker Compose
 
-- Define services. Some do not require a custom image as our first three services did.
-- Postgres
-- Redis
-- Nginx
+- Define services in a docker `compose.yml` file. Some do not require a custom image as our first three services did:
+  - Postgres
+  - Redis
+- For the express server, the `build`, `environment` variables and `volumes` for our source code will need to be provided.
+  - Context will now change because the compose file is now located in a project folder.
+  - Two formats for specifying environment variables for the express server:
+    - `variableName=value` - Sets a variable in the container at runtime (preferred)
+    - `variable` - Value is taken from your computer
+- For the worker, apply similar configurations in the `compose.yml` file as the express server, remembering that it will need information to connect to the redis service.
