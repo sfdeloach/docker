@@ -400,13 +400,24 @@ An "over the top" web application with more services than it requires for calcul
 #### development architecture
 
 ```mermaid
-graph DEVELOPMENT;
-    Front-end-->Nginx;
-    Nginx-->Front-end;
-    Nginx-->Express-server;
-    Express-server-->Nginx;
-    Nginx-->React-server;
-    React-server-->Nginx;
+architecture-beta
+    group dev(cloud)[Development]
+    group user(internet)[User]
+
+    service frontend(internet)[User] in user
+    service nginx(server)[Nginx] in dev
+    service express(server)[Express API] in dev
+    service react(server)[React Server] in dev
+    service cache(database)[Redis] in dev
+    service rdbms(database)[Postgres] in dev
+    service worker(disk)[Woker] in dev
+
+    frontend:R <--> L:nginx
+    nginx:T <--> B:react
+    nginx:R <--> L:express
+    express:T <--> B:cache
+    express:B <--> T:rdbms
+    cache:R <--> L:worker
 ```
 
 ![app arch](./images/03-app-arch.png)
