@@ -165,13 +165,22 @@ When working with volumes, some helpful commands include:
 
 ### course example
 
-The workflow is a cycle:
+The workflow is an iterative cycle:
 
-![workflow cycle diagram](./images/01-workflow-cycle.png)
+```mermaid
+flowchart LR
+    Development@{ shape: bang } ==> Testing@{ shape: bang }
+    Testing ==> Deployment@{ shape: bang }
+    Deployment ==> Development
+    classDef default fill:#aaa,stroke:#fff,stroke-width:4px,color:#000,font-size:24
+```
 
 In this section, the workflow will look like this:
 
-![flow specifics](./images/02-flow-specifics.png)
+```mermaid
+flowchart LR
+    feature --Pull Request--> master --> GitHub[GitHub Actions] --> AWS[AWS Elastic Beanstalk]
+```
 
 Create a new react app, run the out of the box test, and build the application to make sure the application works:
 
@@ -431,7 +440,14 @@ architecture-beta
 
 #### application logic
 
-![app logic](./images/04-app-flow.png)
+```mermaid
+flowchart TB
+    A@{ shape: manual-input, label: "number entered"} --> B@{ shape: doc, label: "React App"}
+    B --> C@{ shape: process, label: "Express Server"}
+    C ---- CE@{ shape: text, label: "stores list\nof indices"} --> E@{ shape: lin-cyl, label: "Postgres\n(RDBMS)"}
+    C --- CD@{ shape: text, label: "stores indices and calculated values"} --> D@{ shape: lin-cyl, label: "Redis\n (cache)"}
+    D --- DF@{shape: text, label: "watches for new indices, calcs new values and inserts back into Redis"} --> F@{ shape: subproc, label: "Worker"}
+```
 
 #### Service 1: NodeJS Worker `worker`
 
