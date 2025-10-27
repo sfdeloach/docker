@@ -17,7 +17,7 @@ Course notes from [Docker and Kubernetes: The Complete Guide](https://www.udemy.
       - [build and run](#build-and-run)
   - [Section 7: Continuous Integration and Deployment with AWS](#section-7-continuous-integration-and-deployment-with-aws)
     - [Vite (vanilla js) -\> GitHub testing and deployment -\> AWS Elastic Beanstalk](#vite-vanilla-js---github-testing-and-deployment---aws-elastic-beanstalk)
-  - [Section 8: Building a Multi-Container Application](#section-8-building-a-multi-container-application)
+  - [Section 8 \& 9: Building a Multi-Container Application \& "Dockerizing" Multiple Services](#section-8--9-building-a-multi-container-application--dockerizing-multiple-services)
     - [course example - "Fibonacci Overkill"](#course-example---fibonacci-overkill)
       - [development flow](#development-flow)
       - [development architecture](#development-architecture)
@@ -179,7 +179,10 @@ In this section, the workflow will look like this:
 
 ```mermaid
 flowchart LR
-    feature --Pull Request--> master --> GitHub[GitHub Actions] --> AWS[AWS Elastic Beanstalk]
+    subgraph "Branches"
+        feature --Pull Request--> master
+    end
+    master--> GitHub(GitHub Actions) --> AWS@{ shape: cloud, label: "AWS Elastic\nBeanstalk"}
 ```
 
 Create a new react app, run the out of the box test, and build the application to make sure the application works:
@@ -234,7 +237,7 @@ Options added to the run command allow bookmarks and mappings to a volume. This 
 
 ```bash
   $ docker run -p 3000:3000 -v usr/src/app/node_modules -v $(pwd):/usr/src/app <image>
-  $ ######################## ^ bookmark ################ ^ mapping ###################
+  $ #                        ^ bookmark                  ^ mapping
 ```
 
 This example is purposefully designed to demonstrate the use of bookmarks and volumes. In this example, we deleted the `node_modules` directory locally, which contained scripts needed to start our development environment. Mapping the contents of our local working directory will not provide it since it no longer exists. However, recall that the command `npm install` was run inside our container during the build. This installed a copy of `node_modules` in the container. The bookmark tells the container to look inside its own file system for any references to the `node_modules` directory. This bookmark is intentionally place before the mapping.
@@ -388,11 +391,11 @@ See GitHub repository `sfdeloach/my-website` for the code:
      - `AWS_SECRET_ACCESS_KEY`
      - `AWS_S3_BUCKET`
 
-## Section 8: Building a Multi-Container Application
+## Section 8 & 9: Building a Multi-Container Application & "Dockerizing" Multiple Services
 
 ### course example - "Fibonacci Overkill"
 
-An "over the top" web application with more services than it requires for calculating Fibonacci numbers. The purpose is to demonstrate how to build a more complex multi-container application. Project repo located at `sfdeloach/fibi-overkill`.
+An "over the top" web application with more services than necessary to calculate Fibonacci numbers. The purpose is to demonstrate how to build a more complex multi-container application. Project repo located at `sfdeloach/fibi-overkill`.
 
 #### development flow
 
@@ -400,10 +403,10 @@ An "over the top" web application with more services than it requires for calcul
 - Nginx server determines if the request is for the UI or the API
 - If for the UI, Nginx serves the UI
 - If for the API, route to the Express Server, then
-  - Store number in Postgres database
-  - Lookup number in Redis for previous calculation
+  - Stores number in a Postgres database
+  - Looks up number in Redis for previous calculation
   - If already calculated, return the cached result
-  - Otherwise, send request to a Nodejs worker to calculate result and save the result when it returns
+  - Otherwise, publishes a message to a subscribed Nodejs worker to perform the calculation and caches the value in Redis
   - Update UI with data from Postgres ("values I have seen") and Redis ("calculated values")
 
 #### development architecture
@@ -442,37 +445,45 @@ architecture-beta
 
 ```mermaid
 flowchart TB
-    A@{ shape: manual-input, label: "number entered"} --> B@{ shape: doc, label: "React App"}
+    A@{ shape: manual-input, label: "User enters\na number"} --> B@{ shape: doc, label: "React App"}
     B --> C@{ shape: process, label: "Express Server"}
-    C ---- CE@{ shape: text, label: "stores list\nof indices"} --> E@{ shape: lin-cyl, label: "Postgres\n(RDBMS)"}
-    C --- CD@{ shape: text, label: "stores indices and calculated values"} --> D@{ shape: lin-cyl, label: "Redis\n (cache)"}
-    D --- DF@{shape: text, label: "watches for new indices, calcs new values and inserts back into Redis"} --> F@{ shape: subproc, label: "Worker"}
+    C ---- CE@{ shape: braces, label: "stores list\nof indices"} --> E@{ shape: lin-cyl, label: "Postgres\n(RDBMS)"}
+    C --- CD@{ shape: braces, label: "stores indices and\ncalculated values"} --> D@{ shape: lin-cyl, label: "Redis\n (cache)"}
+    D --- DF@{shape: braces, label: "watches for new indices,\ncalcs new values and\ninserts back into Redis"}
+    DF --> F@{ shape: subproc, label: "Worker"}
+
+    classDef default fill:#aaa,stroke:#fff,stroke-width:2px,color:#000,font-size:14
+    classDef db fill:dodgerblue
+    classDef notes fill:none,color:#ddd,font-size:12,stroke-width:1px
+
+    class E,D db
+    class CE,CD,DF notes
 ```
 
 #### Service 1: NodeJS Worker `worker`
 
 1. Dependencies: [nodemon](https://www.npmjs.com/package/nodemon), [redis](https://www.npmjs.com/package/redis) client
-2. Scripts: start and dev
-3. Keys: kept in a separate file, read from env vars
-4. Recursive fibonacci function (purposefully slow)
-5. Subscribe on insert events, calculate value, set result in redis
-6. Setup redis client, take note of the need of a duplicate client for [subscribing](https://github.com/redis/node-redis/blob/master/docs/pub-sub.md)
+2. Scripts: `start` and `dev`
+3. Configuration variables: kept in a separate file, read from `process.env`
+4. Recursive fibonacci function (purposefully slow to simulate a heavy workload)
+5. Subscribe on insert events, calculate value, set result in Redis
+6. Setup Redis client, take note of the need of a duplicate client for [subscribing](https://github.com/redis/node-redis/blob/master/docs/pub-sub.md)
 
 #### Service 2: Express API `server`
 
 1. Dependencies: [express](https://www.npmjs.com/package/express), [pg](https://www.npmjs.com/package/pg), [redis](https://www.npmjs.com/package/redis), [cors](https://www.npmjs.com/package/cors), [nodemon](https://www.npmjs.com/package/nodemon), [body-parser](https://www.npmjs.com/package/body-parser)
-2. Scripts: start and dev
-3. Keys: kept in a separate file, read from env vars
+2. Scripts: `start` and `dev`
+3. Configuration variables: kept in a separate file, read from `process.env`
    1. Redis: host and port
    2. Pg: user, host, database, password, port
-4. Use pool connections for postgres
+4. **Hint**: use pool connections for postgres
 5. Create initial table of values in database if it does not exist
-6. Setup redis client, same as the `worker` service above, a duplicate client is needed to [publish](https://github.com/redis/node-redis/blob/master/docs/pub-sub.md).
+6. Setup redis client, same as the `worker` service above, a duplicate client is needed to [publish](https://github.com/redis/node-redis/blob/master/docs/pub-sub.md). (_Note: while a dedicated client is not required to publish messages, as is the case with a subscriber, it is considered good practice._)
 7. Define at least four routes:
    1. Test route that simply verifies the API is receiving requests
    2. All values from postgres
    3. All values from redis
-   4. On user submission of a number, validate input, update value log in postgres, return answer if it exists, if not, send (publish) the task to the `worker` and return a busy signal
+   4. On user submission (`POST`) of a number, validate input, update value log in postgres, return answer if it exists, if not, publish the task to the `worker` and return a busy signal
 
 #### Service 3: React Frontend `client`
 
@@ -486,13 +497,13 @@ flowchart TB
 
 #### Dockerize the Services
 
-- create `Dockerfile`s for each of the three services
+- create `Dockerfile.dev` files for each of the three services
 - copy `package*.json` , npm install, copy everything else, setup volumes to share data
-- read [Docker best practices with Node.js](https://medium.com/@nodepractices/docker-best-practices-with-node-js-e044b78d8f67)
+- see [Docker best practices with Node.js](https://medium.com/@nodepractices/docker-best-practices-with-node-js-e044b78d8f67)
 
 #### Docker Compose
 
-- Define services in a docker `compose.yml` file. Some do not require a custom image as our first three services did:
+- Define services in a docker `compose.yml` file. Some services do not require a custom image as our first three services did:
   - Postgres
   - Redis
 - For the express server, the `build`, `environment` variables and `volumes` for our source code will need to be provided.
@@ -500,4 +511,8 @@ flowchart TB
   - Two formats for specifying environment variables for the express server:
     - `variableName=value` - Sets a variable in the container at runtime (preferred)
     - `variable` - Value is taken from your computer
+- Client service hosts the React frontend and uses the server for live reloads.
 - For the worker, apply similar configurations in the `compose.yml` file as the express server, remembering that it will need information to connect to the redis service.
+- Setup Nginx as the application's [reverse proxy](https://www.cloudflare.com/learning/cdn/glossary/reverse-proxy/).
+  - Configure routing `default.conf` (or `nginx.conf`?) to include upstream servers and routing to the appropriate server with incoming requests. Remember to apply a `rewrite` rule for all api express requests to match route handlers using regex.
+  - Write a `Dockerfile.dev` custom image applying the [configuration](http://nginx.org/en/docs/beginners_guide.html#proxy)
