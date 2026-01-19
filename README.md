@@ -47,7 +47,7 @@ Course notes from [Docker and Kubernetes: The Complete Guide](https://www.udemy.
   $ docker create <image>             # step 1: create a new image
   $ docker start <container>          # step 2: start new instance from image
   $ docker run <image>                # combines steps 1 & 2
-  $ docker start -a <container>       # start and attach to a stopped container
+  $ docker start -ai <container>      # start and attach interactively to a stopped container
   $ docker run -it <image> sh         # create, start, and attach w/ sh console shell
   $ docker run -it ubuntu bash        # create, start, attach to a ubuntu bash console shell
   $ docker exec -it <container> <cmd> # attach to a running container with command
